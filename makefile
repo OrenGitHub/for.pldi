@@ -44,6 +44,7 @@ LFLAGS =                              \
 ${LLVM_LIB_DIR}/libLLVMIRReader.a     \
 ${LLVM_LIB_DIR}/libLLVMAsmParser.a    \
 ${LLVM_LIB_DIR}/libLLVMBitReader.a    \
+${LLVM_LIB_DIR}/libLLVMBitWriter.a    \
 ${LLVM_LIB_DIR}/libLLVMCore.a         \
 ${LLVM_LIB_DIR}/libLLVMSupport.a      \
 -lrt -ldl -ltinfo -lpthread -lz -lm 

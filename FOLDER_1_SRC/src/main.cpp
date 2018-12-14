@@ -5,9 +5,12 @@
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/ToolOutputFile.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/Bitcode/ReaderWriter.h"
 
 /**************/
 /* NAMESPACES */
@@ -135,6 +138,8 @@ void HandleModule(Module *M)
 /********/
 int main(int argc, char **argv)
 {
+	error_code ec;
+
 	/****************/
 	/* LLVM Context */
 	/****************/
@@ -154,6 +159,13 @@ int main(int argc, char **argv)
 	/* Handle Module */
 	/*****************/
 	if (M) HandleModule(M.get());
+
+	/*******************************/
+	/* Save bitcode to output file */
+	/*******************************/
+	tool_output_file result("myOutputBC.bc", ec, sys::fs::F_None);
+	WriteBitcodeToFile(M.get(), result.os());
+	result.keep();
 
 	/**************/
 	/* Return ... */
