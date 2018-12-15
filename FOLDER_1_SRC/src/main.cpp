@@ -24,41 +24,55 @@ using namespace llvm;
 Value *ghost_IVar = nullptr;
 Value *ghost_SVar = nullptr;
 
+/********************/
+/* GLOBAL VARIABLES */
+/********************/
+LLVMContext ctx;
+
 /******************************/
 /* Get Character Pointer Type */
 /******************************/
-PointerType *getCharPtrType(Instruction *i)
+Type *get_i8p_type(LLVMContext &context)
 {
-	return Type::getInt8PtrTy(i->getParent()->getParent()->getContext());
+	return Type::getInt8PtrTy(context);
+}
+
+/********************/
+/* Get Int(32) Type */
+/********************/
+Type *get_i32_type(LLVMContext &context)
+{
+	return Type::getInt32Ty(context);
 }
 
 /*********************/
 /* Allocate Var Here */
 /*********************/
-Value *AllocateVarHere(Instruction *i,const string &name)
+Value *AllocateVarHere
+(
+	Instruction *i,
+	Type *type,
+	const string &name,
+	const unsigned int alignment
+)
 {
 	/************************************/
-	/* [1] Get a character pointer type */
+	/* [1] Create an Alloca instruction */
 	/************************************/
-	auto char_ptr_type  = getCharPtrType(i);
-
-	/************************************/
-	/* [2] Create an Alloca instruction */
-	/************************************/
-	auto ai = new AllocaInst(char_ptr_type,0,name);
+	auto ai = new AllocaInst(type,0,name);
 
 	/******************************************/
-	/* [3] Set alignment to be extra cautious */
+	/* [2] Set alignment to be extra cautious */
 	/******************************************/
-	ai->setAlignment(8);
+	ai->setAlignment(alignment);
 
 	/******************************************/
-	/* [4] Insert Alloca instruction before i */
+	/* [3] Insert Alloca instruction before i */
 	/******************************************/
 	ai->insertBefore(i);
 
 	/******************************************/
-	/* [5] return ai for possible assignments */
+	/* [4] return ai for possible assignments */
 	/******************************************/
 	return ai;
 }
@@ -83,14 +97,21 @@ void Allocate_Ghost_Vars(Function &f)
 			/*******************************************/
 			Instruction *i = &(*(inst));
 
+			/************************/
+			/* [4a] Get an i32 type */
+			/* [4b] Get an i8* type */
+			/************************/
+			auto i32_type = get_i32_type(ctx);
+			auto i8p_type = get_i8p_type(ctx);
+
 			/******************************************************/
-			/* [4] Actual Allocation of ghost_IVar and ghost_SVar */
+			/* [5] Actual Allocation of ghost_IVar and ghost_SVar */
 			/******************************************************/
-			ghost_IVar = AllocateVarHere(i,"ghost_IVar");
-			ghost_SVar = AllocateVarHere(i,"ghost_SVar");
+			ghost_IVar = AllocateVarHere(i,i32_type,"ghost_IVar",4);
+			ghost_SVar = AllocateVarHere(i,i8p_type,"ghost_SVar",8);
 
 			/************************************************************/
-			/* [5] Ha ha ... fancy nested loop ... all we actually need */
+			/* [6] Ha ha ... fancy nested loop ... all we actually need */
 			/*     is the very first instruction of the function        */
 			/************************************************************/
 			return;
@@ -139,37 +160,32 @@ void HandleModule(Module *M)
 int main(int argc, char **argv)
 {
 	error_code ec;
-
-	/****************/
-	/* LLVM Context */
-	/****************/
-	LLVMContext ctx;
-
-	/********************/
-	/* LLVM Diagnostics */
-	/********************/
 	SMDiagnostic Err;
+	Module *M = nullptr;
+	unique_ptr<Module> module;
 
-	/***************/
-	/* LLVM Module */
-	/***************/
-	unique_ptr<Module> M = parseIRFile(argv[1],Err,ctx);
-
-	/*****************/
-	/* Handle Module */
-	/*****************/
-	if (M) HandleModule(M.get());
+	/*****************************************/
+	/* [1] Read LLVM bitcode from input file */
+	/*****************************************/
+	module = parseIRFile(argv[1],Err,ctx);
+	if (!module) { return 0; }
+	else { M = module.get(); }
 
 	/*******************************/
-	/* Save bitcode to output file */
+	/* [2] Instrument LLVM bitcode */
 	/*******************************/
-	tool_output_file result("myOutputBC.bc", ec, sys::fs::F_None);
-	WriteBitcodeToFile(M.get(), result.os());
+	HandleModule(M);
+
+	/******************************************************/
+	/* [3] Write instrumented LLVM bitcode to output file */
+	/******************************************************/
+	tool_output_file result(argv[2],ec,sys::fs::F_None);
+	WriteBitcodeToFile(M,result.os());
 	result.keep();
 
-	/**************/
-	/* Return ... */
-	/**************/
+	/******************/
+	/* [4] Return ... */
+	/******************/
     return 0;
 }
 
