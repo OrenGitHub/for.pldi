@@ -40,13 +40,14 @@ IFLAGS =                    \
 ##########################
 # COMPILER LIBRARY-FLAGS #
 ##########################
-LFLAGS =                              \
-${LLVM_LIB_DIR}/libLLVMIRReader.a     \
-${LLVM_LIB_DIR}/libLLVMAsmParser.a    \
-${LLVM_LIB_DIR}/libLLVMBitReader.a    \
-${LLVM_LIB_DIR}/libLLVMBitWriter.a    \
-${LLVM_LIB_DIR}/libLLVMCore.a         \
-${LLVM_LIB_DIR}/libLLVMSupport.a      \
+LFLAGS =                            \
+${LLVM_LIB_DIR}/libLLVMIRReader.a   \
+${LLVM_LIB_DIR}/libLLVMAsmParser.a  \
+${LLVM_LIB_DIR}/libLLVMAnalysis.a   \
+${LLVM_LIB_DIR}/libLLVMBitReader.a  \
+${LLVM_LIB_DIR}/libLLVMBitWriter.a  \
+${LLVM_LIB_DIR}/libLLVMCore.a       \
+${LLVM_LIB_DIR}/libLLVMSupport.a    \
 -lrt -ldl -ltinfo -lpthread -lz -lm 
 
 ################
@@ -72,7 +73,7 @@ all: ${STR_LOOPS_DIR}/main
 # [1] compile source file(s) to object file(s) #
 ################################################
 ${STR_LOOPS_OBJ_DIR}/%.cpp.o: ${STR_LOOPS_SRC_DIR}/%.cpp ${STR_LOOPS_HEADER_FILES}
-	g++ ${DFLAGS} ${IFLAGS} -o $@ -c $<
+	g++ -g ${DFLAGS} ${IFLAGS} -o $@ -c $<
 
 ############################################
 # [2] link object files to a runnable main #
