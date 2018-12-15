@@ -13,6 +13,7 @@
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/IR/Dominators.h"
 #include "llvm/Analysis/LoopInfo.h"
+#include "llvm/IR/Constants.h"
 
 /**************/
 /* NAMESPACES */
@@ -127,12 +128,31 @@ void Allocate_Ghost_Vars(Function &f)
 	}
 }
 
+bool is_i32_type(Value *v)
+{
+	return v->getType()->isIntegerTy(32);
+}
+
 /*************************/
 /* Instrument Comparison */
 /*************************/
-void Instrument_Comparison_W_Constant(Value *v)
+void Instrument_Comparison_W_Constant
+(
+	Value *v,
+	Instruction *i,
+	int constant
+)
 {
-	
+	if (isReadValue[v])
+	{
+		// Instrument_Comparison_to_Svar(v,i);
+	}
+	else if (is_i32_type(v) && (constant == 0))
+	{
+		// Comparing Ivar to constant
+		// only if the constant is 0.
+		// Instrument_Comparison_to_Ivar(v,i);
+	}
 }
 
 /*************************/
@@ -142,21 +162,26 @@ void Instrument_Comparison
 (
 	Value *v1,
 	Value *v2,
-	bool v1_is_constant,
-	bool v2_is_constant
+	ConstantInt *v1_as_const,
+	ConstantInt *v2_as_const,
+	Instruction *i
 )
 {
-	if ((v1_is_constant == false) && (v2_is_constant == false))
+	int constant;
+	
+	if ((v1_as_const == nullptr) && (v2_as_const == nullptr))
 	{
 		//Instrument_Comparison_Non_Constants(v1,v2);
 	}
-	else if (v1_is_constant == false)
+	else if (v1_as_const == nullptr)
 	{
-		Instrument_Comparison_W_Constant(v1);
+		constant = v2_as_const->getSExtValue();
+		Instrument_Comparison_W_Constant(v1,i,constant);
 	}
-	else if (v2_is_constant == false)
+	else if (v2_as_const == nullptr)
 	{
-		Instrument_Comparison_W_Constant(v2);
+		constant = v1_as_const->getSExtValue();
+		Instrument_Comparison_W_Constant(v1,i,constant);
 	}
 	else
 	{
@@ -169,22 +194,14 @@ void Instrument_Comparison
 /*************************/
 /* Instrument Comparison */
 /*************************/
-void Instrument_Comparison(Value *v1,Value *v2)
+void Instrument_Comparison(Value *v1,Value *v2,Instruction *i)
 {
-	/**************************************/
-	/* [1] Check whether v1 is a constant */
-	/**************************************/
-	bool v1_is_constant = (dyn_cast<Constant>(v1) == nullptr);
-
-	/**************************************/
-	/* [2] Check whether v2 is a constant */
-	/**************************************/
-	bool v2_is_constant = (dyn_cast<Constant>(v2) == nullptr);
-
-	/***************************************/
-	/* [3] Handle 4 options of comparisons */
-	/***************************************/
-	Instrument_Comparison(v1,v2,v1_is_constant,v2_is_constant);
+	Instrument_Comparison(
+		v1,
+		v2,
+		dyn_cast<ConstantInt>(v1),
+		dyn_cast<ConstantInt>(v2),
+		i);
 }
 
 /*************************/
@@ -205,7 +222,7 @@ void Instrument_Comparison(CmpInst *i)
 	/**************************************************/
 	/* [3] Instrument the comparison between 2 values */
 	/**************************************************/
-	Instrument_Comparison(operand0,operand1);
+	Instrument_Comparison(operand0,operand1,i);
 }
 
 /**************************/
