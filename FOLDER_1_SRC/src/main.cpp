@@ -31,6 +31,12 @@ Value *ghost_SVar = nullptr;
 /********************/
 LLVMContext ctx;
 
+/********************/
+/* GLOBAL VARIABLES */
+/********************/
+map<Value *,bool> isReadValue;
+map<Value *,bool> isPhiValue;
+
 /******************************/
 /* Get Character Pointer Type */
 /******************************/
@@ -124,6 +130,14 @@ void Allocate_Ghost_Vars(Function &f)
 /*************************/
 /* Instrument Comparison */
 /*************************/
+void Instrument_Comparison_W_Constant(Value *v)
+{
+	
+}
+
+/*************************/
+/* Instrument Comparison */
+/*************************/
 void Instrument_Comparison
 (
 	Value *v1,
@@ -138,11 +152,11 @@ void Instrument_Comparison
 	}
 	else if (v1_is_constant == false)
 	{
-		//Instrument_Comparison_W_Constant(v1);
+		Instrument_Comparison_W_Constant(v1);
 	}
 	else if (v2_is_constant == false)
 	{
-		//Instrument_Comparison_W_Constant(v2);
+		Instrument_Comparison_W_Constant(v2);
 	}
 	else
 	{
@@ -225,6 +239,89 @@ void Instrument_Comparisons(Loop *l)
 	}
 }
 
+/*******************/
+/* Instrument Read */
+/*******************/
+void Instrument_Read(Value *v1, Value *v2)
+{
+	if (isReadValue[v1])
+	{
+		isReadValue[v2] = true;
+	}
+}
+
+/********************/
+/* Instrument Reads */
+/********************/
+void Instrument_Reads(Loop *l)
+{
+	/*************************************/
+	/* [1] Iterate over all basic blocks */
+	/*************************************/
+	for (auto BB = l->block_begin(); BB != l->block_end(); BB++)
+	{
+		/************************************************************/
+		/* [2] Iterate over all the instructions of the basic block */
+		/************************************************************/
+		for (auto inst = (*BB)->begin(); inst != (*BB)->end(); inst++)
+		{
+			/*******************************************/
+			/* [3] cast iterator to actual instruction */
+			/*******************************************/
+			Instruction *i = &(*(inst));
+
+			/*****************************/
+			/* [4] Instrument Comparison */
+			/*****************************/
+			if (auto si = dyn_cast<SExtInst> (i)) { Instrument_Read(si->getOperand(0),si); }
+			if (auto zi = dyn_cast<ZExtInst> (i)) { Instrument_Read(zi->getOperand(0),zi); }
+			if (auto ti = dyn_cast<TruncInst>(i)) { Instrument_Read(ti->getOperand(0),ti); }
+		}
+	}
+}
+
+/*******************/
+/* Instrument Read */
+/*******************/
+void Instrument_Load(LoadInst *i)
+{
+	if (i->getType()->isIntegerTy(8))
+	{
+		isReadValue[i] = true;
+	}		
+}
+
+/********************/
+/* Instrument Loads */
+/********************/
+void Instrument_Loads(Loop *l)
+{
+	/*************************************/
+	/* [1] Iterate over all basic blocks */
+	/*************************************/
+	for (auto BB = l->block_begin(); BB != l->block_end(); BB++)
+	{
+		/************************************************************/
+		/* [2] Iterate over all the instructions of the basic block */
+		/************************************************************/
+		for (auto inst = (*BB)->begin(); inst != (*BB)->end(); inst++)
+		{
+			/*******************************************/
+			/* [3] cast iterator to actual instruction */
+			/*******************************************/
+			Instruction *i = &(*(inst));
+
+			/***********************/
+			/* [4] Instrument Load */
+			/***********************/
+			if (auto li = dyn_cast<LoadInst>(i))
+			{
+				Instrument_Load(li);
+			}
+		}
+	}
+}
+
 /**************************/
 /* Instrument Comparisons */
 /**************************/
@@ -263,10 +360,20 @@ void Instrument_Comparisons(Function &f)
 				/*****************************************/
 				/* [7] Instrument Inner loop comparisons */
 				/*****************************************/
+				Instrument_Loads(l);
+
+				/*****************************************/
+				/* [7] Instrument Inner loop comparisons */
+				/*****************************************/
+				Instrument_Reads(l);
+
+				/*****************************************/
+				/* [8] Instrument Inner loop comparisons */
+				/*****************************************/
 				Instrument_Comparisons(l);
 
 				/*************************************/
-				/* [8] Assume there is only one loop */
+				/* [9] Assume there is only one loop */
 				/*************************************/
 				return;
 			}
