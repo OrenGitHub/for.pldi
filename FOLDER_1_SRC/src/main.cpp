@@ -2,6 +2,7 @@
 /* LLVM INCLUDE FILES */
 /**********************/
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Value.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/SourceMgr.h"
@@ -9,11 +10,17 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/IR/Dominators.h"
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/IR/Constants.h"
+
+/*************************/
+/* PROJECT INCLUDE FILES */
+/*************************/
+#include "Util.h"
 
 /**************/
 /* NAMESPACES */
@@ -37,22 +44,6 @@ LLVMContext ctx;
 /********************/
 map<Value *,bool> isReadValue;
 map<Value *,bool> isPhiValue;
-
-/******************************/
-/* Get Character Pointer Type */
-/******************************/
-Type *get_i8p_type(LLVMContext &context)
-{
-	return Type::getInt8PtrTy(context);
-}
-
-/********************/
-/* Get Int(32) Type */
-/********************/
-Type *get_i32_type(LLVMContext &context)
-{
-	return Type::getInt32Ty(context);
-}
 
 /*********************/
 /* Allocate Var Here */
@@ -106,13 +97,6 @@ void Allocate_Ghost_Vars(Function &f)
 			/*******************************************/
 			Instruction *i = &(*(inst));
 
-			/************************/
-			/* [4a] Get an i32 type */
-			/* [4b] Get an i8* type */
-			/************************/
-			auto i32_type = get_i32_type(ctx);
-			auto i8p_type = get_i8p_type(ctx);
-
 			/******************************************************/
 			/* [5] Actual Allocation of ghost_IVar and ghost_SVar */
 			/******************************************************/
@@ -126,11 +110,6 @@ void Allocate_Ghost_Vars(Function &f)
 			return;
 		}
 	}
-}
-
-bool is_i32_type(Value *v)
-{
-	return v->getType()->isIntegerTy(32);
 }
 
 /*************************/
@@ -194,7 +173,12 @@ void Instrument_Comparison
 /*************************/
 /* Instrument Comparison */
 /*************************/
-void Instrument_Comparison(Value *v1,Value *v2,Instruction *i)
+void Instrument_Comparison
+(
+	Value *v1,
+	Value *v2,
+	Instruction *i
+)
 {
 	Instrument_Comparison(
 		v1,
@@ -403,6 +387,12 @@ void Instrument_Comparisons(Function &f)
 /**************************/
 void HandleStringFunc(Function &f)
 {
+	/***********************/
+	/* [0] Initializations */
+	/***********************/
+	i32_type = get_i32_type(ctx);
+	i8p_type = get_i8p_type(ctx);
+
 	/******************************/
 	/* [1] Print Handled Function */
 	/******************************/

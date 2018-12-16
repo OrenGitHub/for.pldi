@@ -35,6 +35,7 @@ DFLAGS = -D__STDC_CONSTANT_MACROS -D__STDC_LIMIT_MACROS
 IFLAGS =                    \
 -I${LLVM_SRC_DIR}/include   \
 -I${LLVM_BUILD_DIR}/include \
+-I${STR_LOOPS_INC_DIR}      \
 -I/usr/local/lib
 
 ##########################
