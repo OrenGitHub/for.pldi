@@ -1,0 +1,47 @@
+#!/bin/bash
+###############
+# DIRECTORIES #
+###############
+BASEDIR=~/GIT
+
+###############
+# DIRECTORIES #
+###############
+LLVM_DIR=${BASEDIR}/llvm-3.8.0
+LLVM_SRC_DIR=${LLVM_DIR}/llvm
+LLVM_BUILD_DIR=${LLVM_DIR}/build
+CLANG_SRC_DIR=${LLVM_SRC_DIR}/tools/clang
+
+###############
+# DEFINITIONS #
+###############
+LLVM_SVN=https://llvm.org/svn/llvm-project
+TAG=tags/RELEASE_380/final
+
+#########################################################
+# Prepare llvm, llvm/src and llvm/build directories ... #
+#########################################################
+mkdir ${LLVM_DIR}
+mkdir ${LLVM_SRC_DIR}
+
+##################
+# Get llvm 3.8.0 #
+##################
+svn co ${LLVM_SVN}/llvm/${TAG} ${LLVM_SRC_DIR}
+svn co ${LLVM_SVN}/cfe/${TAG}  ${CLANG_SRC_DIR}
+
+#################################
+# No changes will be needed ... #
+#################################
+rm -rf ${LLVM_SRC_DIR}/.svn
+rm -rf ${CLANG_SRC_DIR}/.svn
+
+###########################################
+# Get inside the llvm directory and cmake #
+###########################################
+cd ${LLVM_BUILD_DIR} && cmake -G "Unix Makefiles" ${LLVM_SRC_DIR}
+
+###############
+# make it !!! #
+###############
+make -j 4

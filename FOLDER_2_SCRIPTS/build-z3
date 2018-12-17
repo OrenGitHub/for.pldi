@@ -1,0 +1,30 @@
+#! /bin/bash
+####################
+# git clone it !!! #
+####################
+git clone https://github.com/Z3Prover/z3.git
+
+###############################
+# Get inside the z3 directory #
+###############################
+cd z3
+
+###########################
+# configure a debug build #
+###########################
+python2.7 scripts/mk_make.py -d
+
+###############################
+# Get inside the z3 directory #
+###############################
+cd build
+
+###############
+# make it !!! #
+###############
+make -j
+
+######################
+# make install stuff #
+######################
+sudo make install
