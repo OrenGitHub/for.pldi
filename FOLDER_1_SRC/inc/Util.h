@@ -17,17 +17,35 @@ using namespace llvm;
 /********************/
 /* GLOBAL VARIABLES */
 /********************/
+extern Type *i1_type;
 extern Type *i32_type;
 extern Type *i8p_type;
 
-/******************************/
-/* Get Character Pointer Type */
-/******************************/
-Type *get_i8p_type(LLVMContext &context);
+/********************/
+/* GLOBAL VARIABLES */
+/********************/
+extern Value *ghost_IVar;
+extern Value *ghost_SVar;
 
 /********************/
-/* Get Int(32) Type */
+/* GLOBAL VARIABLES */
 /********************/
+extern Value *ghost_StatusVar;
+extern Value *ghost_StrlenVar;
+
+/*************************/
+/* Get Boolean (i1) Type */
+/*************************/
+Type *get_i1_type(LLVMContext &context);
+
+/************************************/
+/* Get Character Pointer (i8*) Type */
+/************************************/
+Type *get_i8p_type(LLVMContext &context);
+
+/**********************/
+/* Get Int (i32) Type */
+/**********************/
 Type *get_i32_type(LLVMContext &context);
 
 /*******************/
