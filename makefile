@@ -1,7 +1,7 @@
 ###############
 # DIRECTORIES #
 ###############
-BASEDIR = /home/oren/GIT
+BASEDIR = ${HOME}/GIT
 
 ###############
 # DIRECTORIES #

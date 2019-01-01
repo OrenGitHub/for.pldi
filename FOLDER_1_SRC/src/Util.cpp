@@ -33,8 +33,8 @@ Value *ghost_SVar = nullptr;
 /********************/
 /* GLOBAL VARIABLES */
 /********************/
-Value *ghost_StatusVar = nullptr;
-Value *ghost_StrlenVar = nullptr;
+Value *global_StatusVar = nullptr;
+Value *global_StrlenVar = nullptr;
 
 /***************************/
 /* STATIC GLOBAL VARIABLES */
@@ -79,7 +79,7 @@ bool is_i32_type(Value *v)
 /* ghost_IVar                 */
 /* ghost_SVar                 */
 /* ghost_StatusVar            */
-/* ghost_StrlenVar            */
+/* global_StrlenVar            */
 /*                            */
 /******************************/
 Instruction *Load_ghost_IVar(Instruction *i)
@@ -96,13 +96,13 @@ Instruction *Load_ghost_SVar(Instruction *i)
 }
 LoadInst *Load_ghost_StatusVar(Instruction *i)
 {
-	auto li = new LoadInst(ghost_StatusVar,"ghost_StatusVar_Loaded");
+	auto li = new LoadInst(global_StatusVar,"global_StatusVar_Loaded");
 	li->insertBefore(i);
 	return li;
 }
-Instruction *Load_ghost_StrlenVar(Instruction *i)
+Instruction *Load_global_StrlenVar(Instruction *i)
 {
-	auto li = new LoadInst(ghost_StrlenVar,"ghost_StrlenVar_Loaded");
+	auto li = new LoadInst(global_StrlenVar,"global_StrlenVar_Loaded");
 	li->insertBefore(i);
 	return li;
 }
@@ -112,7 +112,7 @@ Instruction *Load_ghost_StrlenVar(Instruction *i)
 /* ghost_IVar                 */
 /* ghost_SVar                 */
 /* ghost_StatusVar            */
-/* ghost_StrlenVar            */
+/* global_StrlenVar            */
 /*                            */
 /******************************/
 void StoreTo_ghost_IVar(Value *v, Instruction *i)
@@ -127,12 +127,12 @@ void StoreTo_ghost_SVar(Value *v, Instruction *i)
 }
 void StoreTo_ghost_StatusVar(Value *v,Instruction *i)
 {
-	auto si = new StoreInst(v,ghost_StatusVar);
+	auto si = new StoreInst(v,global_StatusVar);
 	si->insertBefore(i);
 }
-void StoreTo_ghost_StrlenVar(Value *v,Instruction *i)
+void StoreTo_global_StrlenVar(Value *v,Instruction *i)
 {
-	auto si = new StoreInst(v,ghost_StrlenVar);
+	auto si = new StoreInst(v,global_StrlenVar);
 	si->insertBefore(i);
 }
 
@@ -222,7 +222,7 @@ void Turn_Status_Flag_On_Conditionally(Value *cond,Instruction *i)
 /* Check Equality and make sure it satisfies:      */
 /*                                                 */
 /* LHS == ghost_IVar                               */
-/* RHS == ghost_StrlenVar                          */
+/* RHS == global_StrlenVar                          */
 /*                                                 */
 /***************************************************/
 Instruction *CheckEquality_Ivar_len(Value *v1,Value *v2,Instruction *i)
@@ -240,7 +240,7 @@ Instruction *CheckEquality_Ivar_len(Value *v1,Value *v2,Instruction *i)
 		op,
 		eq,
 		v2,
-		Load_ghost_StrlenVar(i),
+		Load_global_StrlenVar(i),
 		"compareTo_Strlen");
 	ci2->insertBefore(i);
 	return AndThemUp(ci1,ci2,i);
@@ -272,5 +272,21 @@ Instruction *CheckEquality_Ivar_zero(Value *v1,Value *v2,Instruction *i)
 		"compareToStrlen");
 	ci2->insertBefore(i);
 	return AndThemUp(ci1,ci2,i);		
+}
+void Update_Ghost_IVar(Function &f, int inc_I)
+{
+}
+
+void Update_Ghost_SVar(Function &f, int inc_S)
+{
+}
+
+void Initialize_Ghost_IVar(Function &f,int init_I)
+{
+	
+}
+void Initialize_Ghost_SVar(Function &f,int init_S)
+{
+	
 }
 

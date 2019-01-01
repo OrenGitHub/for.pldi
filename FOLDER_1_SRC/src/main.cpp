@@ -32,12 +32,38 @@ using namespace llvm;
 /* GLOBAL VARIABLES */
 /********************/
 LLVMContext ctx;
+Module *M = nullptr;
 
 /********************/
 /* GLOBAL VARIABLES */
 /********************/
 map<Value *,bool> isReadValue;
 map<Value *,bool> isPhiValue;
+
+/********************/
+/* GLOBAL VARIABLES */
+/********************/
+int init_I = 0;
+int init_S = 0;
+
+/********************/
+/* GLOBAL VARIABLES */
+/********************/
+int inc_I = 1;
+int inc_S = 1;
+
+/************************************/
+/* Initialize myStatus and myStrlen */
+/************************************/
+void Initialize_Global_Status_Var()
+{
+	global_StatusVar = M->getGlobalVariable("myStatus");
+}
+
+void Initialize_Global_Strlen_Var()
+{
+	global_StatusVar = M->getGlobalVariable("myStrlen");
+}
 
 /*********************/
 /* Allocate Var Here */
@@ -393,24 +419,33 @@ void HandleStringFunc(Function &f)
 	/******************************/
 	errs() << f.getName() << "\n";
 
+	/**********************************************/
+	/* [2] Initialize global status & strlen vars */
+	/**********************************************/
+	Initialize_Global_Status_Var();
+	Initialize_Global_Strlen_Var();
+
 	/******************************************/
-	/* [2] Allocate ghost_IVar and ghost_SVar */
+	/* [3] Allocate ghost_IVar and ghost_SVar */
 	/******************************************/
 	Allocate_Ghost_Vars(f);
 
 	/********************************************/
-	/* [3] Initialize ghost_IVar and ghost_SVar */
+	/* [4] Initialize ghost_IVar and ghost_SVar */
 	/********************************************/
-	// Initialize_Ghost_Vars(f,Ioffset,Soffset);
-
+	Initialize_Ghost_IVar(f,init_I);
+	Initialize_Ghost_SVar(f,init_S);
+	
 	/******************************/
-	/* [4] Instrument Comparisons */
+	/* [5] Instrument Comparisons */
 	/******************************/
 	Instrument_Comparisons(f);
 
 	/***********************************************/
-	/* [5] Instrument Pointer & Integer increments */
+	/* [6] Instrument Pointer & Integer increments */
 	/***********************************************/
+	Update_Ghost_IVar(f,inc_I);
+	Update_Ghost_SVar(f,inc_S);
 }
 
 /*****************/
@@ -434,7 +469,6 @@ int main(int argc, char **argv)
 {
 	error_code ec;
 	SMDiagnostic Err;
-	Module *M = nullptr;
 	unique_ptr<Module> module;
 
 	/*****************************************/

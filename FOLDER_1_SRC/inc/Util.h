@@ -30,8 +30,8 @@ extern Value *ghost_SVar;
 /********************/
 /* GLOBAL VARIABLES */
 /********************/
-extern Value *ghost_StatusVar;
-extern Value *ghost_StrlenVar;
+extern Value *global_StatusVar;
+extern Value *global_StrlenVar;
 
 /*************************/
 /* Get Boolean (i1) Type */
@@ -69,5 +69,10 @@ Instruction *NegItUp(Value *v,Instruction *i);
 Instruction *CheckEquality_Ivar_len( Value *v1,Value *v2,Instruction *i);
 Instruction *CheckEquality_Ivar_zero(Value *v1,Value *v2,Instruction *i);
 
+void Initialize_Ghost_IVar(Function &f,int init_I);
+void Initialize_Ghost_SVar(Function &f,int init_S);
+
+void Update_Ghost_IVar(Function &f,int inc_I);
+void Update_Ghost_SVar(Function &f,int inc_S);
 
 #endif
