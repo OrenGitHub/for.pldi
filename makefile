@@ -89,7 +89,7 @@ STR_LOOPS_BC_OPT_INSTRUMENTED_FILES = $(wildcard ${STR_LOOPS_BC_OPT_INSTRUMENTED
 ###########################
 # RUN ANALYSIS ON BITCODE #
 ###########################
-all: ${STATUS_FILE}
+all: ${STR_LOOPS_STATUS_DIR}/status.txt
 
 ################################################
 # [1] compile source file(s) to object file(s) #
@@ -165,20 +165,24 @@ ${KLEE_OUTPUT_DIR}/KLEE_STATUS_%.txt: ${KLEE_OUTPUT_DIR}/KLEE_OUTPUT_%.txt
 ########################################################
 # [10] echo the validity of the example to a text file #
 ########################################################
-${STR_LOOPS_STATUS_DIR}/%.txt: ${KLEE_OUTPUT_DIR}/%
-	status = 0                                   \
-	pattern1 = $ASSERTION_FAIL_PATTERN;          \
-	pattern2 = $KLEE_DONE_PATTERN;               \
-	@for filename in $(shell ls $<);             \
-	do                                           \
-		x = $(grep -c "$pattern1" $${filename}); \
-		y = $(grep -c "$pattern2" $${filename}); \
-		x_eq_0 = [[ "$x" -eq "0" ]];             \
-		y_ne_0 = [[ "$y" -ne "0" ]];             \
-		z = x_eq_0 && y_ne_0;                    \
-		status = $((status||$z));                \
-	done                                         \
-	echo ${status} > $@
+${STR_LOOPS_STATUS_DIR}/status.txt: makefile
+	@status=0;                                     \
+	pattern1=${ASSERTION_FAIL_PATTERN};            \
+	pattern2=${KLEE_DONE_PATTERN};                 \
+	for f in $$(ls ${STR_LOOPS_STATUS_DIR});       \
+	do                                             \
+		file=${STR_LOOPS_STATUS_DIR}/$$f;          \
+		echo $$file;                               \
+		x=$$(grep -c "$$pattern1" "$$file");       \
+		y=$$(grep -c "$$pattern2" "$$file");       \
+		z=0;                                       \
+		if [ "$$x" -eq "0" ] && [ "$$y" -ne "0" ]; \
+		then                                       \
+			z=1;                                   \
+		fi;                                        \
+		status=$$((status || $$z));                \
+	done;                                          \
+	echo $$status
 
 #######################################################################
 # [11] accumulate the validity of the examples to a single *.csv file #
