@@ -111,34 +111,36 @@ all: ${STATUS_FILE}
 # [1] compile source file(s) to object file(s) #
 ################################################
 ${STR_LOOPS_OBJ_DIR}/%.cpp.o: ${STR_LOOPS_SRC_DIR}/%.cpp ${STR_LOOPS_HEADER_FILES}
-	g++ -g ${DFLAGS} ${IFLAGS} -o $@ -c $<
+	@echo "Compiling: $<"
+	@g++ -g ${DFLAGS} ${IFLAGS} -o $@ -c $<
 
 ############################################
 # [2] link object files to a runnable main #
 ############################################
 ${STR_LOOPS_DIR}/main: ${STR_LOOPS_OBJ_FILES}
-	g++ ${STR_LOOPS_OBJ_FILES} -o ${STR_LOOPS_DIR}/main ${LFLAGS}
+	@echo "Linking  : ${STR_LOOPS_DIR}/main"
+	@g++ ${STR_LOOPS_OBJ_FILES} -o ${STR_LOOPS_DIR}/main ${LFLAGS}
 
 ####################################################
 # [3] create bitcode from each example source file #
 ####################################################
 ${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc: \
 ${STR_LOOPS_C_EXAMPLES_DIR}/%.c
-	clang ${CLANG_FLAGS} $< -o $@
+	@clang ${CLANG_FLAGS} $< -o $@
 
 ####################################
 # [4] opt native passes on bitcode #
 ####################################
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc: \
 ${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc
-	opt ${OPT_PASSES} $< -o $@
+	@opt ${OPT_PASSES} $< -o $@
 
 #################################
 # [5] human readable *.ll files #
 #################################
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.ll: \
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc
-	llvm-dis -o $@ $<
+	@llvm-dis -o $@ $<
 
 ########################################
 # [6] instrument the optimized bitcode #
@@ -147,9 +149,9 @@ ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%:   \
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc \
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.ll \
 ${STR_LOOPS_DIR}/main
-	rm -rf $@
-	mkdir  $@
-	cp $< $@/$(notdir $<)
+	@rm -rf $@
+	@mkdir  $@
+	@cp $< $@/$(notdir $<)
 #	${STR_LOOPS_DIR}/main $< $@/$<
 
 #################################
@@ -162,25 +164,26 @@ ${STR_LOOPS_DIR}/main
 # [8] run KLEE of instrumented bitcode #
 ########################################
 ${KLEE_OUTPUT_DIR}/%: ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
-	rm -rf $@
-	mkdir  $@
-	for f in $$(ls $<);                               \
+	@rm -rf $@
+	@mkdir  $@
+	@for f in $$(ls $<);                              \
 	do                                                \
-		file=$@/$$(basename $@/$$f);                  \
+		file=$@/$$(basename $$f .bc);                 \
 		cp $</$$f /tmp/$$f;                           \
 		${KLEE} ${KLEE_FLAGS} /tmp/$$f 2> $$file.txt; \
-	done
+	done;                                             \
+	echo "Executing KLEE On Instrumented Bitcode: $$f"
 
 ########################################################
 # [10] echo the validity of the example to a text file #
 ########################################################
 ${STR_LOOPS_STATUS_DIR}/%.status: ${KLEE_OUTPUT_DIR}/%
-	status=0;                                      \
+	@status=0;                                     \
 	pattern1=${ASSERTION_FAIL_PATTERN};            \
 	pattern2=${KLEE_DONE_PATTERN};                 \
 	for f in $$(ls $<);                            \
 	do                                             \
-		file=${STR_LOOPS_STATUS_DIR}/$$f;          \
+		file=$</$$f;                               \
 		x=$$(grep -c "$$pattern1" "$$file");       \
 		y=$$(grep -c "$$pattern2" "$$file");       \
 		z=0;                                       \
@@ -196,8 +199,8 @@ ${STR_LOOPS_STATUS_DIR}/%.status: ${KLEE_OUTPUT_DIR}/%
 # [11] accumulate the validity of the examples to a single *.csv file #
 #######################################################################
 ${STATUS_FILE}: ${STR_LOOPS_STATUS__FILES}
-	rm -f $@
-	for f in $$(ls ${STR_LOOPS_STATUS_DIR});              \
+	@rm -f $@
+	@for f in $$(ls ${STR_LOOPS_STATUS_DIR});             \
 	do                                                    \
 		file=${STR_LOOPS_STATUS_DIR}/$$f;                 \
 	 	status=$$(head -n 1 "$$file");                    \
