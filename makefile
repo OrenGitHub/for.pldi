@@ -68,7 +68,7 @@ ${LLVM_LIB_DIR}/libLLVMSupport.a    \
 ########
 KLEE_DIR     = ${BASEDIR}/klee/vanilla.klee
 KLEE_SRC_DIR = ${KLEE_DIR}/klee
-KLEE_BIN_DIR = ${KLEE_DIR}/build/bin
+KLEE_BIN_DIR = ${KLEE_DIR}/build-with-clang-3.8.0/bin
 KLEE_INC_DIR = ${KLEE_SRC_DIR}/include
 KLEE         = ${KLEE_BIN_DIR}/klee
 
@@ -81,7 +81,7 @@ KLEE_DONE_PATTERN = "KLEE: done"
 #########
 # CLANG #
 #########
-CLANG_FLAGS = -c -emit-llvm -O0 -I${KLEE_INC_DIR}
+CLANG_FLAGS = -w -c -emit-llvm -O0 -I${KLEE_INC_DIR}
 OPT_PASSES = -instnamer
 
 ################
@@ -164,10 +164,10 @@ ${STR_LOOPS_DIR}/main
 ${KLEE_OUTPUT_DIR}/%: ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
 	rm -rf $@
 	mkdir  $@
-	for f in $$(ls $<);                         \
-	do                                          \
-		file=$$(basename $@/$$f)                \
-		${KLEE} ${KLEE_FLAGS} $$f > $$file.txt; \
+	for f in $$(ls $<);                            \
+	do                                             \
+		file=$@/$$(basename $@/$$f)                \
+		${KLEE} ${KLEE_FLAGS} $</$$f > $$file.txt; \
 	done
 
 ########################################################
