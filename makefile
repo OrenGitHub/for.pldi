@@ -102,9 +102,9 @@ STR_LOOPS_STATUS__FILES        = $(addprefix ${STR_LOOPS_STATUS_DIR}/,${STR_LOOP
 #################
 STR_LOOPS_BC_OPT_INSTRUMENTED_FILES = $(wildcard ${STR_LOOPS_BC_OPT_INSTRUMENTED}/*.bc)
 
-###########################
-# RUN ANALYSIS ON BITCODE #
-###########################
+######################
+# [0] default target #
+######################
 all: ${STATUS_FILE}
 
 ################################################
@@ -174,9 +174,9 @@ ${KLEE_OUTPUT_DIR}/%: ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
 	done;                                             \
 	echo "Executing KLEE On Instrumented Bitcode: $$f"
 
-########################################################
-# [10] echo the validity of the example to a text file #
-########################################################
+#######################################################
+# [9] echo the validity of the example to a text file #
+#######################################################
 ${STR_LOOPS_STATUS_DIR}/%.status: ${KLEE_OUTPUT_DIR}/%
 	@status=0;                                     \
 	pattern1=${ASSERTION_FAIL_PATTERN};            \
@@ -196,7 +196,7 @@ ${STR_LOOPS_STATUS_DIR}/%.status: ${KLEE_OUTPUT_DIR}/%
 	echo $$status > $@
 
 #######################################################################
-# [11] accumulate the validity of the examples to a single *.csv file #
+# [10] accumulate the validity of the examples to a single *.csv file #
 #######################################################################
 ${STATUS_FILE}: ${STR_LOOPS_STATUS__FILES}
 	@rm -f $@
