@@ -111,14 +111,14 @@ all: ${STATUS_FILE}
 # [1] compile source file(s) to object file(s) #
 ################################################
 ${STR_LOOPS_OBJ_DIR}/%.cpp.o: ${STR_LOOPS_SRC_DIR}/%.cpp ${STR_LOOPS_HEADER_FILES}
-	@echo "Compiling: $<"
+	@echo "Compiling Application File: $<"
 	@g++ -g ${DFLAGS} ${IFLAGS} -o $@ -c $<
 
 ############################################
 # [2] link object files to a runnable main #
 ############################################
 ${STR_LOOPS_DIR}/main: ${STR_LOOPS_OBJ_FILES}
-	@echo "Linking  : ${STR_LOOPS_DIR}/main"
+	@echo "Linking Application File : ${STR_LOOPS_DIR}/main"
 	@g++ ${STR_LOOPS_OBJ_FILES} -o ${STR_LOOPS_DIR}/main ${LFLAGS}
 
 ####################################################
