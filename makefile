@@ -164,10 +164,11 @@ ${STR_LOOPS_DIR}/main
 ${KLEE_OUTPUT_DIR}/%: ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
 	rm -rf $@
 	mkdir  $@
-	for f in $$(ls $<);                            \
-	do                                             \
-		file=$@/$$(basename $@/$$f)                \
-		${KLEE} ${KLEE_FLAGS} $</$$f > $$file.txt; \
+	for f in $$(ls $<);                               \
+	do                                                \
+		file=$@/$$(basename $@/$$f);                  \
+		cp $</$$f /tmp/$$f;                           \
+		${KLEE} ${KLEE_FLAGS} /tmp/$$f 2> $$file.txt; \
 	done
 
 ########################################################
@@ -207,12 +208,14 @@ ${STATUS_FILE}: ${STR_LOOPS_STATUS__FILES}
 # [11] clean target ... #
 #########################
 clean:
-	rm -f ${STR_LOOPS_DIR}/main
-	rm -f ${STR_LOOPS_OBJ_FILES}
-	rm -f ${STR_LOOPS_BC_EXAMPLES_DIR}/*.bc
-	rm -f ${STR_LOOPS_BC_EXAMPLES_DIR}/*.ll
-	rm -f ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/*.bc
-	rm -f ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/*.ll
-	rm -f ${STR_LOOPS_BC_OPT_INSTRUMENTED}/*.bc
-	rm -f ${STR_LOOPS_BC_OPT_INSTRUMENTED}/*.ll
-	
+	rm -rf ${KLEE_OUTPUT_DIR}
+	mkdir  ${KLEE_OUTPUT_DIR}
+	rm -f  ${STR_LOOPS_DIR}/main
+	rm -f  ${STR_LOOPS_OBJ_FILES}
+	rm -f  ${STR_LOOPS_BC_EXAMPLES_DIR}/*.bc
+	rm -f  ${STR_LOOPS_BC_EXAMPLES_DIR}/*.ll
+	rm -f  ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/*.bc
+	rm -f  ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/*.ll
+	rm -rf ${STR_LOOPS_BC_OPT_INSTRUMENTED}
+	mkdir  ${STR_LOOPS_BC_OPT_INSTRUMENTED}
+
