@@ -66,20 +66,36 @@ ${LLVM_LIB_DIR}/libLLVMSupport.a    \
 ########
 # KLEE #
 ########
-KLEE_BIN_DIR = ${BASEDIR}/klee/vanilla.klee/build/bin
-KLEE = ${KLEE_BIN_DIR}/klee
-ASSERTION_FAIL_PATTERN="ASSERTION FAIL"
-KLEE_DONE_PATTERN="KLEE: done"
+KLEE_DIR     = ${BASEDIR}/klee/vanilla.klee
+KLEE_SRC_DIR = ${KLEE_DIR}/klee
+KLEE_BIN_DIR = ${KLEE_DIR}/build/bin
+KLEE_INC_DIR = ${KLEE_SRC_DIR}/include
+KLEE         = ${KLEE_BIN_DIR}/klee
+
+#########
+# OTHER #
+#########
+ASSERTION_FAIL_PATTERN = "ASSERTION FAIL"
+KLEE_DONE_PATTERN = "KLEE: done"
+
+#########
+# CLANG #
+#########
+CLANG_FLAGS = -c -emit-llvm -O0 -I${KLEE_INC_DIR}
+OPT_PASSES = -instnamer
 
 ################
 # SOURCE FILES #
 ################
-STR_LOOPS_SRC_FILES        = $(wildcard  ${STR_LOOPS_SRC_DIR}/*.cpp)
-STR_LOOPS_SRC_FILES_NOTDIR = $(notdir    ${STR_LOOPS_SRC_FILES})
-STR_LOOPS_OBJ_FILES_NOTDIR = $(patsubst %.cpp, %.cpp.o, ${STR_LOOPS_SRC_FILES_NOTDIR})
-STR_LOOPS_OBJ_FILES        = $(addprefix ${STR_LOOPS_OBJ_DIR}/,${STR_LOOPS_OBJ_FILES_NOTDIR})
-STR_LOOPS_HEADER_FILES     = $(wildcard  ${STR_LOOPS_INC_DIR}/*.h)
-STR_LOOPS_STATUS_FILES     = $(wildcard  ${STR_LOOPS_STATUS_DIR}/*.txt)
+STR_LOOPS_SRC_FILES            = $(wildcard  ${STR_LOOPS_SRC_DIR}/*.cpp)
+STR_LOOPS_SRC_FILES_NOTDIR     = $(notdir    ${STR_LOOPS_SRC_FILES})
+STR_LOOPS_OBJ_FILES_NOTDIR     = $(patsubst %.cpp, %.cpp.o, ${STR_LOOPS_SRC_FILES_NOTDIR})
+STR_LOOPS_OBJ_FILES            = $(addprefix ${STR_LOOPS_OBJ_DIR}/,${STR_LOOPS_OBJ_FILES_NOTDIR})
+STR_LOOPS_HEADER_FILES         = $(wildcard  ${STR_LOOPS_INC_DIR}/*.h)
+STR_LOOPS_EXAMPLE_FILES        = $(wildcard  ${STR_LOOPS_C_EXAMPLES_DIR}/*.c)
+STR_LOOPS_EXAMPLE_FILES_NOTDIR = $(notdir    ${STR_LOOPS_EXAMPLE_FILES})
+STR_LOOPS_STATUS__FILES_NOTDIR = $(patsubst %.c, %.status, ${STR_LOOPS_EXAMPLE_FILES_NOTDIR})
+STR_LOOPS_STATUS__FILES        = $(addprefix ${STR_LOOPS_STATUS_DIR}/,${STR_LOOPS_STATUS__FILES_NOTDIR})
 
 #################
 # BITCODE FILES #
@@ -89,7 +105,7 @@ STR_LOOPS_BC_OPT_INSTRUMENTED_FILES = $(wildcard ${STR_LOOPS_BC_OPT_INSTRUMENTED
 ###########################
 # RUN ANALYSIS ON BITCODE #
 ###########################
-all: ${STR_LOOPS_STATUS_DIR}/status.txt
+all: ${STATUS_FILE}
 
 ################################################
 # [1] compile source file(s) to object file(s) #
@@ -106,19 +122,22 @@ ${STR_LOOPS_DIR}/main: ${STR_LOOPS_OBJ_FILES}
 ####################################################
 # [3] create bitcode from each example source file #
 ####################################################
-${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc: ${STR_LOOPS_C_EXAMPLES_DIR}/%.c
-	clang -emit-llvm -o $@ -c $<
+${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc: \
+${STR_LOOPS_C_EXAMPLES_DIR}/%.c
+	clang ${CLANG_FLAGS} $< -o $@
 
 ####################################
 # [4] opt native passes on bitcode #
 ####################################
-${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc: ${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc
-	opt ${OPT_PASSES} -o $@ $<
+${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc: \
+${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc
+	opt ${OPT_PASSES} $< -o $@
 
 #################################
 # [5] human readable *.ll files #
 #################################
-${STR_LOOPS_BC_EXAMPLES_DIR}/%.ll: ${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc
+${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.ll: \
+${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc
 	llvm-dis -o $@ $<
 
 ########################################
@@ -126,9 +145,12 @@ ${STR_LOOPS_BC_EXAMPLES_DIR}/%.ll: ${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc
 ########################################
 ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%:   \
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc \
-${STR_LOOPS_BC_EXAMPLES_DIR}/%.ll     \
+${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.ll \
 ${STR_LOOPS_DIR}/main
-	mkdir $@ && ${STR_LOOPS_DIR}/main $< $@/$<
+	rm -rf $@
+	mkdir  $@
+	cp $< $@/$(notdir $<)
+#	${STR_LOOPS_DIR}/main $< $@/$<
 
 #################################
 # [7] human readable *.ll files #
@@ -139,40 +161,25 @@ ${STR_LOOPS_DIR}/main
 ########################################
 # [8] run KLEE of instrumented bitcode #
 ########################################
-${KLEE_OUTPUT_DIR}/%: ${STR_LOOPS_BC_OPT_INSTRUMENTED}/% ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%.ll
-	${KLEE} --posix-runtime $< > $@
-
-#############################################
-# [9] grep KLEE output for assertion errors #
-#############################################
-${KLEE_OUTPUT_DIR}/KLEE_STATUS_%.txt: ${KLEE_OUTPUT_DIR}/KLEE_OUTPUT_%.txt
-	AssertionHits0=$(grep -c "$ASSERTION_FAIL_PATTERN" ${KLEE_OUTPUT_FILE_0})
-	AssertionHits1=$(grep -c "$ASSERTION_FAIL_PATTERN" ${KLEE_OUTPUT_FILE_1})
-	AssertionHits2=$(grep -c "$ASSERTION_FAIL_PATTERN" ${KLEE_OUTPUT_FILE_2})
-	AssertionHits3=$(grep -c "$ASSERTION_FAIL_PATTERN" ${KLEE_OUTPUT_FILE_3})
-	KLEE_Finished0=$(grep -c "$KLEE_DONE_PATTERN"      ${KLEE_OUTPUT_FILE_0})
-	KLEE_Finished1=$(grep -c "$KLEE_DONE_PATTERN"      ${KLEE_OUTPUT_FILE_1})
-	KLEE_Finished2=$(grep -c "$KLEE_DONE_PATTERN"      ${KLEE_OUTPUT_FILE_2})
-	KLEE_Finished3=$(grep -c "$KLEE_DONE_PATTERN"      ${KLEE_OUTPUT_FILE_3})
-	status0=[[ "$AssertionHits0" -eq "0" ]] && [[ "$KLEE_Finished0" -ne "0" ]]
-	status1=[[ "$AssertionHits1" -eq "0" ]] && [[ "$KLEE_Finished1" -ne "0" ]]
-	status2=[[ "$AssertionHits2" -eq "0" ]] && [[ "$KLEE_Finished2" -ne "0" ]]
-	status3=[[ "$AssertionHits3" -eq "0" ]] && [[ "$KLEE_Finished3" -ne "0" ]]
-	status=${status0}||${status1}||${status2}||${status3}
-
-	echo "$filename: Valid Loop"
+${KLEE_OUTPUT_DIR}/%: ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
+	rm -rf $@
+	mkdir  $@
+	for f in $$(ls $<);                         \
+	do                                          \
+		file=$$(basename $@/$$f)                \
+		${KLEE} ${KLEE_FLAGS} $$f > $$file.txt; \
+	done
 
 ########################################################
 # [10] echo the validity of the example to a text file #
 ########################################################
-${STR_LOOPS_STATUS_DIR}/status.txt: makefile
-	@status=0;                                     \
+${STR_LOOPS_STATUS_DIR}/%.status: ${KLEE_OUTPUT_DIR}/%
+	status=0;                                      \
 	pattern1=${ASSERTION_FAIL_PATTERN};            \
 	pattern2=${KLEE_DONE_PATTERN};                 \
-	for f in $$(ls ${STR_LOOPS_STATUS_DIR});       \
+	for f in $$(ls $<);                            \
 	do                                             \
 		file=${STR_LOOPS_STATUS_DIR}/$$f;          \
-		echo $$file;                               \
 		x=$$(grep -c "$$pattern1" "$$file");       \
 		y=$$(grep -c "$$pattern2" "$$file");       \
 		z=0;                                       \
@@ -182,13 +189,14 @@ ${STR_LOOPS_STATUS_DIR}/status.txt: makefile
 		fi;                                        \
 		status=$$((status || $$z));                \
 	done;                                          \
-	echo $$status
+	echo $$status > $@
 
 #######################################################################
 # [11] accumulate the validity of the examples to a single *.csv file #
 #######################################################################
-${STATUS_FILE}: ${STR_LOOPS_STATUS_FILES}
-	@for f in $$(ls ${STR_LOOPS_STATUS_DIR});             \
+${STATUS_FILE}: ${STR_LOOPS_STATUS__FILES}
+	rm -f $@
+	for f in $$(ls ${STR_LOOPS_STATUS_DIR});              \
 	do                                                    \
 		file=${STR_LOOPS_STATUS_DIR}/$$f;                 \
 	 	status=$$(head -n 1 "$$file");                    \
