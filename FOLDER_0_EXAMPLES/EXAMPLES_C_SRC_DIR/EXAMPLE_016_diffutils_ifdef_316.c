@@ -17,6 +17,7 @@
 #define N 4
 
 int myStatus=0;
+int myStrlen=0;
 
 char *loopFunction(char *f)
 {

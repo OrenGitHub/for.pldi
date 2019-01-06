@@ -23,6 +23,7 @@
 #define cr_whitespace(c) (whitespace(c) || ((c) == '\n'))
 
 int myStatus=0;
+int myStrlen=0;
 
 char *loopFunction(char *xp)
 {

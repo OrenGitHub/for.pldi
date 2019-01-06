@@ -20,12 +20,15 @@
 #define ISDIGIT(c) (('0' <= c) && (c <= '9'))
 
 int myStatus=0;
+int myStrlen=0;
 
 char *loopFunction(char *f)
 {
     char c = *f++;
     while (ISDIGIT(c))
+    {
         c = *f++;
+    }
     return f;
 }
 

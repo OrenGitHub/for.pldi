@@ -19,6 +19,7 @@
 #define is_dir_sep(c) (((c) == '/') || ((c) == '\\'))
 
 int myStatus=0;
+int myStrlen=0;
 
 char *loopFunction(char *start)
 {

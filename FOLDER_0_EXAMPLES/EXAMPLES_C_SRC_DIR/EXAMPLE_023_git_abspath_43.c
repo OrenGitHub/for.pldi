@@ -16,9 +16,8 @@
 /***************/
 #define N 10
 
-
 int myStatus=0;
-
+int myStrlen=0;
 
 #define is_dir_sep(c) (((c) == '/') || ((c) == '\\'))
 

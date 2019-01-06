@@ -17,6 +17,7 @@
 #define N 10
 
 int myStatus=0;
+int myStrlen=0;
 
 char *loopFunction(char *path)
 {

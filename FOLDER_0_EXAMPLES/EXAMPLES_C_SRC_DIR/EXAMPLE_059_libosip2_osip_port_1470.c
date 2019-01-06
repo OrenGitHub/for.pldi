@@ -14,7 +14,7 @@
 /***************/
 /* DEFINITIONS */
 /***************/
-#define N 10
+#define N 5
 
 
 int myStatus=0;
