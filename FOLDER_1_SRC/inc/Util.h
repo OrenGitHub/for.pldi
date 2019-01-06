@@ -63,6 +63,7 @@ Instruction *AddThemUp(Value *v1,Value *v2, Instruction *i);
 Instruction *SubThemUp(Value *v1,Value *v2, Instruction *i);
 Instruction *MulThemUp(Value *v1,Value *v2, Instruction *i);
 
+void Turn_Status_Flag_On(Instruction *i);
 void Turn_Status_Flag_On_Conditionally(Value *cond,Instruction *i);
 Instruction *NegItUp(Value *v,Instruction *i);
 

@@ -203,6 +203,16 @@ Instruction *NegItUp(Value *v,Instruction *i)
 /********************************************************/
 /* Turn Status flag one conditionally (with error code) */
 /********************************************************/
+void Turn_Status_Flag_On(Instruction *i)
+{
+	/********************/
+	/* Actual store ... */
+	/********************/
+	StoreTo_ghost_StatusVar(ConstantInt::get(i32_type,1),i);
+}
+/********************************************************/
+/* Turn Status flag one conditionally (with error code) */
+/********************************************************/
 void Turn_Status_Flag_On_Conditionally(Value *cond,Instruction *i)
 {
 	/***************/

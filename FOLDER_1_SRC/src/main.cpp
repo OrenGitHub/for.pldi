@@ -1,3 +1,8 @@
+/*************************/
+/* GENERAL INCLUDE FILES */
+/*************************/
+#include <assert.h>
+
 /**********************/
 /* LLVM INCLUDE FILES */
 /**********************/
@@ -58,11 +63,13 @@ int inc_S = 1;
 void Initialize_Global_Status_Var()
 {
 	global_StatusVar = M->getGlobalVariable("myStatus");
+	assert(global_StatusVar && "global variable myStatus was not found");
 }
 
 void Initialize_Global_Strlen_Var()
 {
-	global_StatusVar = M->getGlobalVariable("myStrlen");
+	global_StrlenVar = M->getGlobalVariable("myStrlen");
+	assert(global_StrlenVar && "global variable myStrlen was not found");
 }
 
 /*********************/
@@ -229,10 +236,10 @@ void Instrument_Comparison(CmpInst *i)
 	Instrument_Comparison(operand0,operand1,i);
 }
 
-/**************************/
-/* Instrument Comparisons */
-/**************************/
-void Instrument_Comparisons(Loop *l)
+/*******************************/
+/* Instrument Loop Comparisons */
+/*******************************/
+void Instrument_Loop_Comparisons(Loop *l)
 {
 	/*************************************/
 	/* [1] Iterate over all basic blocks */
@@ -343,10 +350,10 @@ void Instrument_Loads(Loop *l)
 	}
 }
 
-/**************************/
-/* Instrument Comparisons */
-/**************************/
-void Instrument_Comparisons(Function &f)
+/***********************************/
+/* Instrument Function Comparisons */
+/***********************************/
+void Instrument_Function_Comparisons(Function &f)
 {
 	/******************************/
 	/* [1] Compute Dominator Tree */
@@ -384,19 +391,55 @@ void Instrument_Comparisons(Function &f)
 				Instrument_Loads(l);
 
 				/*****************************************/
-				/* [7] Instrument Inner loop comparisons */
+				/* [8] Instrument Inner loop comparisons */
 				/*****************************************/
 				Instrument_Reads(l);
 
 				/*****************************************/
-				/* [8] Instrument Inner loop comparisons */
+				/* [9] Instrument Inner loop comparisons */
 				/*****************************************/
-				Instrument_Comparisons(l);
+				Instrument_Loop_Comparisons(l);
 
-				/*************************************/
-				/* [9] Assume there is only one loop */
-				/*************************************/
+				/**************************************/
+				/* [10] Assume there is only one loop */
+				/**************************************/
 				return;
+			}
+		}
+	}
+}
+
+/**********************************/
+/* Function Calls Other Functions */
+/**********************************/
+bool Function_Calls_Other_Functions(Function &f)
+{
+	/*************************************/
+	/* [1] Iterate over all basic blocks */
+	/*************************************/
+	for (auto BB = f.begin(); BB != f.end(); BB++)
+	{
+		/*************************************/
+		/* [2] Iterate over all instructions */
+		/*************************************/
+		for (auto inst = BB->begin(); inst != BB->end(); inst++)
+		{
+			/*********************************************/
+			/* [3] Cast from iterator to (Instruction *) */
+			/*********************************************/
+			Instruction *i = &(*(inst));
+
+			/***********************************************/
+			/* [4] Check if function calls other functions */
+			/***********************************************/
+			if (dyn_cast<CallInst>(i))
+			{
+				/***********************************************/
+				/* [5] if it does, let it turn the status flag */
+				/*     on, so we know it's not valid           */
+				/***********************************************/
+				Turn_Status_Flag_On(i);
+				return 1;
 			}
 		}
 	}
@@ -425,6 +468,11 @@ void HandleStringFunc(Function &f)
 	Initialize_Global_Status_Var();
 	Initialize_Global_Strlen_Var();
 
+	/**********************************************************/
+	/* [3] Exclude string functions that call other functions */
+	/**********************************************************/
+	if (Function_Calls_Other_Functions(f)) { return; }
+
 	/******************************************/
 	/* [3] Allocate ghost_IVar and ghost_SVar */
 	/******************************************/
@@ -436,10 +484,10 @@ void HandleStringFunc(Function &f)
 	Initialize_Ghost_IVar(f,init_I);
 	Initialize_Ghost_SVar(f,init_S);
 	
-	/******************************/
-	/* [5] Instrument Comparisons */
-	/******************************/
-	Instrument_Comparisons(f);
+	/***************************************/
+	/* [5] Instrument Function Comparisons */
+	/***************************************/
+	Instrument_Function_Comparisons(f);
 
 	/***********************************************/
 	/* [6] Instrument Pointer & Integer increments */
@@ -455,7 +503,7 @@ void HandleModule(Module *M)
 {
 	for (auto f = M->begin(); f != M->end(); f++)
 	{
-		if (f->getName().str() != "main")
+		if (f->getName().str() == "loopFunction")
 		{
 			HandleStringFunc(*f);
 		}
