@@ -22,7 +22,7 @@
           (_IS_DRIVE_LETTER ((Filename)[0]) && (Filename)[1] == ':' ? 2 : 0)
 # define ISSLASH(C) ((C) == '/' || (C) == '\\')
 
-int status=0;
+int myStatus=0;
 int myStrlen=0;
 
 char *loopFunction(char *filename)
@@ -47,6 +47,6 @@ int main(int argc, char **argv)
 	s[3]= 0 ;
 	myStrlen = strlen(s);
 	printf("%s",loopFunction(s));
-	if (status != 0) { assert(0); }
+	if (myStatus != 0) { assert(0); }
 	return 0;
 }

@@ -32,7 +32,7 @@ static signed char const sq_lookup[256] = {
 	/* 0x80 */ /* set to 0 */
 };
 
-int status=0;
+int myStatus=0;
 int myStrlen=0;
 
 
@@ -55,6 +55,6 @@ int main(int argc, char **argv)
 	s[N-1]=0;
 	myStrlen = strlen(s);
 	printf("%s",loopFunction(s));
-	if (status != 0) { assert(0); }
+	if (myStatus != 0) { assert(0); }
 	return 0;
 }

@@ -16,17 +16,17 @@
 /***************/
 #define N 10
 
-int status=0;
+int myStatus=0;
 int myStrlen=0;
 
-char *loopFunction(char *status)
+char *loopFunction(char *myStatus)
 {
     // tar-1.29/lib/rtapelib.c:243:7
-    for (; *status == ' ' || *status == '\t'; status++)
+    for (; *myStatus == ' ' || *myStatus == '\t'; myStatus++)
     {
         continue;
     }
-    return status;
+    return myStatus;
 }
 
 int main(int argc, char **argv)
@@ -36,6 +36,6 @@ int main(int argc, char **argv)
 	s[N-1]=0;
 	myStrlen = strlen(s);
 	printf("%s",loopFunction(s));
-	if (status != 0) { assert(0); }
+	if (myStatus != 0) { assert(0); }
 	return 0;
 }

@@ -21,7 +21,7 @@
 /**********/
 #define whitespace(c) (((c) == ' ') || ((c) == '\t'))
 
-int status=0;
+int myStatus=0;
 
 char *loopFunction(char *expression)
 {
@@ -38,6 +38,6 @@ int main(int argc, char **argv)
 	klee_make_symbolic(s,N,"s");
 	s[N-1]=0;
 	printf("%s",loopFunction(s));
-	if (status != 0) { assert(0); }
+	if (myStatus != 0) { assert(0); }
 	return 0;
 }
