@@ -14,7 +14,7 @@
 /***************/
 /* DEFINITIONS */
 /***************/
-#define N 10
+#define N 5
 
 static inline int crud(unsigned char c)
 {
@@ -30,19 +30,22 @@ static inline int crud(unsigned char c)
 		c == '\'';
 }
 
-int status=0;
-
+int myStatus=0;
 int myStrlen = 0;
 
-char *loopFunction(char *src) {
-  char c;
-  // git-2.18.0/ident.c:224:2
-  while ((c = *src) != 0) {
-    if (!crud(c))
-      break;
-    src++;
-  }
-  return src;
+char *loopFunction(char *src)
+{
+    char c;
+    // git-2.18.0/ident.c:224:2
+    while ((c = *src) != 0)
+    {
+        if (!crud(c))
+        {
+            break;
+        }
+        src++;
+    }
+    return src;
 }
 
 int main(int argc, char **argv)
@@ -52,6 +55,6 @@ int main(int argc, char **argv)
 	s[N-1]=0;
 	myStrlen = strlen(s);
 	printf("%s",loopFunction(s));
-	if (status != 0) { assert(0); }
+	if (myStatus != 0) { assert(0); }
 	return 0;
 }
