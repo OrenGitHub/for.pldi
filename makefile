@@ -105,10 +105,15 @@ STR_LOOPS_STATUS__FILES        = $(addprefix ${STR_LOOPS_STATUS_DIR}/,${STR_LOOP
 #################
 STR_LOOPS_BC_OPT_INSTRUMENTED_FILES = $(wildcard ${STR_LOOPS_BC_OPT_INSTRUMENTED}/*.bc)
 
+##########################################
+# DONT TOUCH MY *.ll GENERATED FILES !!! #
+##########################################
+.SECONDARY:
+
 ######################
 # [0] default target #
 ######################
-all: ${STATUS_FILE}
+.DEFAULT_GOAL := ${STATUS_FILE}
 
 ############################################################
 # [1] compile application source file(s) to object file(s) #
@@ -216,6 +221,7 @@ ${STR_LOOPS_STATUS_DIR}/%.status: ${KLEE_OUTPUT_DIR}/%
 		fi;                                        \
 		status=$$((status || $$z));                \
 	done;                                          \
+	echo "[ 7 ] Grep-ing for assertions: $$f";     \
 	echo $$status > $@
 
 #######################################################################
@@ -229,15 +235,19 @@ ${STATUS_FILE}: ${STR_LOOPS_STATUS__FILES}
 	 	status=$$(head -n 1 "$$file");                    \
 		printf '%s\n' $$f $$status | paste -sd ',' >> $@; \
 	done
+	@echo "[ 8 ] Loop over status files and create status.csv"
 
 #########################
 # [11] clean target ... #
 #########################
 clean:
+	rm     ${STATUS_FILE}
 	rm -rf ${KLEE_OUTPUT_DIR}
 	mkdir  ${KLEE_OUTPUT_DIR}
 	rm -f  ${STR_LOOPS_DIR}/main
 	rm -f  ${STR_LOOPS_OBJ_FILES}
+	rm -rf ${STR_LOOPS_STATUS_DIR}
+	mkdir  ${STR_LOOPS_STATUS_DIR}
 	rm -rf ${STR_LOOPS_BC_EXAMPLES_DIR}
 	mkdir  ${STR_LOOPS_BC_EXAMPLES_DIR}
 	rm -rf ${STR_LOOPS_LL_EXAMPLES_DIR}
