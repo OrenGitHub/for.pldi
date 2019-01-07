@@ -21,7 +21,6 @@
 int myStatus=0;
 int myStrlen=0;
 
-
 char *loopFunction(char *name)
 {
     // patch-2.7/lib/basename-lgpl.c:63:3

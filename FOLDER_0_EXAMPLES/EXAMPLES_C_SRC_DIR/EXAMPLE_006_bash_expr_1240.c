@@ -22,6 +22,7 @@
 #define whitespace(c) (((c) == ' ') || ((c) == '\t'))
 
 int myStatus=0;
+int myStrlen=0;
 
 #define cr_whitespace(c) (whitespace(c) || ((c) == '\n'))
 

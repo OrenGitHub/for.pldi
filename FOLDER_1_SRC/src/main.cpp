@@ -460,7 +460,7 @@ void HandleStringFunc(Function &f)
 	/******************************/
 	/* [1] Print Handled Function */
 	/******************************/
-	errs() << f.getName() << "\n";
+	// errs() << f.getName() << "\n";
 
 	/**********************************************/
 	/* [2] Initialize global status & strlen vars */

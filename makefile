@@ -164,11 +164,12 @@ ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%:   \
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc \
 ${STR_LOOPS_LL_OPT_EXAMPLES_DIR}/%.ll \
 ${STR_LOOPS_DIR}/main
-	@rm -rf ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
-	@mkdir  ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
-	@rm -rf ${STR_LOOPS_LL_OPT_INSTRUMENTED}/%
-	@mkdir  ${STR_LOOPS_LL_OPT_INSTRUMENTED}/%
-	@echo "[ 5 ] Instrumenting bitcode    : $<"
+	@dir=$$(basename $(notdir $<) .bc);            \
+	rm -rf ${STR_LOOPS_BC_OPT_INSTRUMENTED}/$$dir; \
+	mkdir  ${STR_LOOPS_BC_OPT_INSTRUMENTED}/$$dir; \
+	rm -rf ${STR_LOOPS_LL_OPT_INSTRUMENTED}/$$dir; \
+	mkdir  ${STR_LOOPS_LL_OPT_INSTRUMENTED}/$$dir; \
+	echo "[ 5 ] Instrumenting bitcode    : $<"
 	@${STR_LOOPS_DIR}/main $< $@/$(notdir $<)
 
 ###################################################################
@@ -183,11 +184,12 @@ ${KLEE_OUTPUT_DIR}/%: ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
 		cp $</$$f /tmp/$$f;                           \
 		${KLEE} ${KLEE_FLAGS} /tmp/$$f 2> $$file.txt; \
 	done;                                             \
-	echo "Executing KLEE On Instrumented Bitcode: $$f"
+	echo "[ 6 ] Executing KLEE On Bitcode: $$f"
 	@for f in $$(ls $<);                              \
 	do                                                \
-		bcdir=${STR_LOOPS_BC_OPT_INSTRUMENTED}/%;     \
-		lldir=${STR_LOOPS_LL_OPT_INSTRUMENTED}/%;     \
+		dir=$(notdir $<);                             \
+		bcdir=${STR_LOOPS_BC_OPT_INSTRUMENTED}/$$dir; \
+		lldir=${STR_LOOPS_LL_OPT_INSTRUMENTED}/$$dir; \
 		bcfile=$$(basename $$f .bc).bc;               \
 		llfile=$$(basename $$f .bc).ll;               \
 		input=$$bcdir/$$bcfile;                       \

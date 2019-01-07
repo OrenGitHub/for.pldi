@@ -23,6 +23,7 @@
 #define ISDIGIT(c) (IN_CTYPE_DOMAIN (c) && isdigit (c))
 
 int myStatus=0;
+int myStrlen=0;
 
 char *loopFunction(char *f)
 {

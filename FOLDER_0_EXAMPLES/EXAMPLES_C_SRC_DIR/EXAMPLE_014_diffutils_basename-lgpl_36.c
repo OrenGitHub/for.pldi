@@ -19,6 +19,7 @@
 # define ISSLASH(C) ((C) == '/' || (C) == '\\')
 
 int myStatus=0;
+int myStrlen=0;
 
 char *loopFunction(char *base)
 {
