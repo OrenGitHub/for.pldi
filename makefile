@@ -22,8 +22,11 @@ STR_LOOPS_INC_DIR             = ${STR_LOOPS_DIR}/FOLDER_1_SRC/inc
 STR_LOOPS_EXAMPLES_DIR        = ${STR_LOOPS_DIR}/FOLDER_0_EXAMPLES
 STR_LOOPS_C_EXAMPLES_DIR      = ${STR_LOOPS_EXAMPLES_DIR}/EXAMPLES_C_SRC_DIR
 STR_LOOPS_BC_EXAMPLES_DIR     = ${STR_LOOPS_EXAMPLES_DIR}/EXAMPLES_BC_DIR
+STR_LOOPS_LL_EXAMPLES_DIR     = ${STR_LOOPS_EXAMPLES_DIR}/EXAMPLES_LL_DIR
 STR_LOOPS_BC_OPT_EXAMPLES_DIR = ${STR_LOOPS_EXAMPLES_DIR}/EXAMPLES_BC_OPT_DIR
+STR_LOOPS_LL_OPT_EXAMPLES_DIR = ${STR_LOOPS_EXAMPLES_DIR}/EXAMPLES_LL_OPT_DIR
 STR_LOOPS_BC_OPT_INSTRUMENTED = ${STR_LOOPS_EXAMPLES_DIR}/EXAMPLES_BC_OPT_INSTRUMENTED_DIR
+STR_LOOPS_LL_OPT_INSTRUMENTED = ${STR_LOOPS_EXAMPLES_DIR}/EXAMPLES_LL_OPT_INSTRUMENTED_DIR
 STR_LOOPS_STATUS_DIR          = ${STR_LOOPS_EXAMPLES_DIR}/EXAMPLES_STATUS_DIR
 
 ###############
@@ -107,16 +110,16 @@ STR_LOOPS_BC_OPT_INSTRUMENTED_FILES = $(wildcard ${STR_LOOPS_BC_OPT_INSTRUMENTED
 ######################
 all: ${STATUS_FILE}
 
-################################################
-# [1] compile source file(s) to object file(s) #
-################################################
+############################################################
+# [1] compile application source file(s) to object file(s) #
+############################################################
 ${STR_LOOPS_OBJ_DIR}/%.cpp.o: ${STR_LOOPS_SRC_DIR}/%.cpp ${STR_LOOPS_HEADER_FILES}
 	@echo "Compiling Application File: $<"
 	@g++ -g ${DFLAGS} ${IFLAGS} -o $@ -c $<
 
-############################################
-# [2] link object files to a runnable main #
-############################################
+##########################################################
+# [2] link object files to a runnable application (main) #
+##########################################################
 ${STR_LOOPS_DIR}/main: ${STR_LOOPS_OBJ_FILES}
 	@echo "Linking Application File : ${STR_LOOPS_DIR}/main"
 	@g++ ${STR_LOOPS_OBJ_FILES} -o ${STR_LOOPS_DIR}/main ${LFLAGS}
@@ -128,41 +131,44 @@ ${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc: \
 ${STR_LOOPS_C_EXAMPLES_DIR}/%.c
 	@clang ${CLANG_FLAGS} $< -o $@
 
+######################################################
+# [4] create human readable *.ll file from *.bc file #
+######################################################
+${STR_LOOPS_LL_EXAMPLES_DIR}/%.ll: \
+${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc
+	@llvm-dis $< -o $@
+
 ####################################
-# [4] opt native passes on bitcode #
+# [5] opt native passes on bitcode #
 ####################################
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc: \
-${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc
+${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc      \
+${STR_LOOPS_LL_EXAMPLES_DIR}/%.ll
 	@opt ${OPT_PASSES} $< -o $@
 
-#################################
-# [5] human readable *.ll files #
-#################################
-${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.ll: \
+######################################################
+# [6] create human readable *.ll file from *.bc file #
+######################################################
+${STR_LOOPS_LL_OPT_EXAMPLES_DIR}/%.ll: \
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc
-	@llvm-dis -o $@ $<
+	@llvm-dis $< -o $@
 
 ########################################
-# [6] instrument the optimized bitcode #
+# [7] instrument the optimized bitcode #
 ########################################
 ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%:   \
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc \
-${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.ll \
+${STR_LOOPS_LL_OPT_EXAMPLES_DIR}/%.ll \
 ${STR_LOOPS_DIR}/main
-	@rm -rf $@
-	@mkdir  $@
-	@cp $< $@/$(notdir $<)
-#	${STR_LOOPS_DIR}/main $< $@/$<
+	@rm -rf ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
+	@mkdir  ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
+	@rm -rf ${STR_LOOPS_LL_OPT_INSTRUMENTED}/%
+	@mkdir  ${STR_LOOPS_LL_OPT_INSTRUMENTED}/%
+	${STR_LOOPS_DIR}/main $< $@/$(notdir $<)
 
-#################################
-# [7] human readable *.ll files #
-#################################
-#${STR_LOOPS_BC_OPT_INSTRUMENTED}/%/%.ll: ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%/%.bc
-#	llvm-dis -o $@ $<
-
-########################################
-# [8] run KLEE of instrumented bitcode #
-########################################
+###################################################################
+# [8] run KLEE of instrumented bitcode(s) & generate *.ll file(s) #
+###################################################################
 ${KLEE_OUTPUT_DIR}/%: ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
 	@rm -rf $@
 	@mkdir  $@
@@ -173,6 +179,16 @@ ${KLEE_OUTPUT_DIR}/%: ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
 		${KLEE} ${KLEE_FLAGS} /tmp/$$f 2> $$file.txt; \
 	done;                                             \
 	echo "Executing KLEE On Instrumented Bitcode: $$f"
+	@for f in $$(ls $<);                              \
+	do                                                \
+		bcdir=${STR_LOOPS_BC_OPT_INSTRUMENTED}/%;     \
+		lldir=${STR_LOOPS_LL_OPT_INSTRUMENTED}/%;     \
+		bcfile=$$(basename $$f .bc).bc;               \
+		llfile=$$(basename $$f .bc).ll;               \
+		input=$$bcdir/$$bcfile;                       \
+		output=$$lldir/$$llfile;                      \
+		llvm-dis $$input -o $$output;                 \
+	done;
 
 #######################################################
 # [9] echo the validity of the example to a text file #
@@ -215,10 +231,16 @@ clean:
 	mkdir  ${KLEE_OUTPUT_DIR}
 	rm -f  ${STR_LOOPS_DIR}/main
 	rm -f  ${STR_LOOPS_OBJ_FILES}
-	rm -f  ${STR_LOOPS_BC_EXAMPLES_DIR}/*.bc
-	rm -f  ${STR_LOOPS_BC_EXAMPLES_DIR}/*.ll
-	rm -f  ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/*.bc
-	rm -f  ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/*.ll
+	rm -rf ${STR_LOOPS_BC_EXAMPLES_DIR}
+	mkdir  ${STR_LOOPS_BC_EXAMPLES_DIR}
+	rm -rf ${STR_LOOPS_LL_EXAMPLES_DIR}
+	mkdir  ${STR_LOOPS_LL_EXAMPLES_DIR}
+	rm -rf ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}
+	mkdir  ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}
+	rm -rf ${STR_LOOPS_LL_OPT_EXAMPLES_DIR}
+	mkdir  ${STR_LOOPS_LL_OPT_EXAMPLES_DIR}
 	rm -rf ${STR_LOOPS_BC_OPT_INSTRUMENTED}
 	mkdir  ${STR_LOOPS_BC_OPT_INSTRUMENTED}
+	rm -rf ${STR_LOOPS_LL_OPT_INSTRUMENTED}
+	mkdir  ${STR_LOOPS_LL_OPT_INSTRUMENTED}
 
