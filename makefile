@@ -129,6 +129,7 @@ ${STR_LOOPS_DIR}/main: ${STR_LOOPS_OBJ_FILES}
 ####################################################
 ${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc: \
 ${STR_LOOPS_C_EXAMPLES_DIR}/%.c
+	@echo "[ 1 ] Generating bitcode   from: $<"
 	@clang ${CLANG_FLAGS} $< -o $@
 
 ######################################################
@@ -136,6 +137,7 @@ ${STR_LOOPS_C_EXAMPLES_DIR}/%.c
 ######################################################
 ${STR_LOOPS_LL_EXAMPLES_DIR}/%.ll: \
 ${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc
+	@echo "[ 2 ] Generating *.ll file from: $<"
 	@llvm-dis $< -o $@
 
 ####################################
@@ -144,6 +146,7 @@ ${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc: \
 ${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc      \
 ${STR_LOOPS_LL_EXAMPLES_DIR}/%.ll
+	@echo "[ 3 ] Optimizing           from: $<"
 	@opt ${OPT_PASSES} $< -o $@
 
 ######################################################
@@ -151,6 +154,7 @@ ${STR_LOOPS_LL_EXAMPLES_DIR}/%.ll
 ######################################################
 ${STR_LOOPS_LL_OPT_EXAMPLES_DIR}/%.ll: \
 ${STR_LOOPS_BC_OPT_EXAMPLES_DIR}/%.bc
+	@echo "[ 4 ] Generating *.ll file from: $<"
 	@llvm-dis $< -o $@
 
 ########################################
@@ -164,7 +168,8 @@ ${STR_LOOPS_DIR}/main
 	@mkdir  ${STR_LOOPS_BC_OPT_INSTRUMENTED}/%
 	@rm -rf ${STR_LOOPS_LL_OPT_INSTRUMENTED}/%
 	@mkdir  ${STR_LOOPS_LL_OPT_INSTRUMENTED}/%
-	${STR_LOOPS_DIR}/main $< $@/$(notdir $<)
+	@echo "[ 5 ] Instrumenting bitcode    : $<"
+	@${STR_LOOPS_DIR}/main $< $@/$(notdir $<)
 
 ###################################################################
 # [8] run KLEE of instrumented bitcode(s) & generate *.ll file(s) #
