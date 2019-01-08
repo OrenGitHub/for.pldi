@@ -151,13 +151,28 @@ void Instrument_Comparison_W_Constant
 {
 	if (isReadValue[v])
 	{
-		// Instrument_Comparison_to_Svar(v,i);
+		/**********************************************/
+		/* [1] If v is a read value, then it must     */
+		/*     be equal to [ ghost_SVar ]. Otherwise, */
+		/*     it is an error. That is, we turn the   */
+		/*     status flag on.                        */
+		/**********************************************/
+		Turn_Status_Flag_On_Conditionally(
+			Value_Is_Different_From_SVar_Content(v,i),
+			i);
 	}
 	else if (is_i32_type(v) && (constant == 0))
 	{
-		// Comparing Ivar to constant
-		// only if the constant is 0.
-		// Instrument_Comparison_to_Ivar(v,i);
+		/*************************************************/
+		/* [2] If v is *NOT* a read value, then the      */
+		/*     only other option is that v is equal to   */
+		/*     ghost_IVar, and the constant that is      */
+		/*     being compared to is zero (0). Otherwise, */
+		/*     we turn the status flag on.               */
+		/*************************************************/
+		Turn_Status_Flag_On_Conditionally(
+			Value_Is_Different_From_Ivar(v,i),
+			i);
 	}
 }
 
@@ -177,7 +192,7 @@ void Instrument_Comparison
 	
 	if ((v1_as_const == nullptr) && (v2_as_const == nullptr))
 	{
-		//Instrument_Comparison_Non_Constants(v1,v2);
+		Instrument_Comparison_Non_Constants(v1,v2,i);
 	}
 	else if (v1_as_const == nullptr)
 	{
@@ -187,7 +202,7 @@ void Instrument_Comparison
 	else if (v2_as_const == nullptr)
 	{
 		constant = v1_as_const->getSExtValue();
-		Instrument_Comparison_W_Constant(v1,i,constant);
+		Instrument_Comparison_W_Constant(v2,i,constant);
 	}
 	else
 	{

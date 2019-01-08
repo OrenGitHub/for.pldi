@@ -76,4 +76,9 @@ void Initialize_Ghost_SVar(Function &f,int init_S);
 void Update_Ghost_IVar(Function &f,int inc_I);
 void Update_Ghost_SVar(Function &f,int inc_S);
 
+void Instrument_Comparison_Non_Constants(Value *v1, Value *v2, Instruction *i);
+
+Value *Value_Is_Different_From_Ivar(        Value *v, Instruction *i);
+Value *Value_Is_Different_From_SVar_Content(Value *v, Instruction *i);
+
 #endif

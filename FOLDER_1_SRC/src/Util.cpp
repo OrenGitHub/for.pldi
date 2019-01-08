@@ -73,38 +73,43 @@ bool is_i32_type(Value *v)
 	return v->getType()->isIntegerTy(32);
 }
 
+/****************/
+/* Generic Load */
+/****************/
+Instruction *LoadIt(Value *v, Instruction *i, const char *name)
+{
+	auto li = new LoadInst(v,name);
+	li->insertBefore(i);
+	return li;	
+}
 /******************************/
 /* Load special vars:         */
 /*                            */
 /* ghost_IVar                 */
 /* ghost_SVar                 */
-/* ghost_StatusVar            */
-/* global_StrlenVar            */
+/* global_StatusVar           */
+/* global_StrlenVar           */
 /*                            */
 /******************************/
 Instruction *Load_ghost_IVar(Instruction *i)
 {
-	auto li = new LoadInst(ghost_IVar,"ghost_IVar_Loaded");
-	li->insertBefore(i);
-	return li;
+	assert(ghost_IVar && "ghost_IVar is NULL");
+	return LoadIt(ghost_IVar,i,"ghost_IVar_Loaded");
 }
 Instruction *Load_ghost_SVar(Instruction *i)
 {
-	auto li = new LoadInst(ghost_SVar,"ghost_SVar_Loaded");
-	li->insertBefore(i);
-	return li;
+	assert(ghost_SVar && "ghost_SVar is NULL");
+	return LoadIt(ghost_SVar,i,"ghost_SVar_Loaded");
 }
-LoadInst *Load_ghost_StatusVar(Instruction *i)
+Instruction *Load_ghost_StatusVar(Instruction *i)
 {
-	auto li = new LoadInst(global_StatusVar,"global_StatusVar_Loaded");
-	li->insertBefore(i);
-	return li;
+	assert(global_StatusVar && "global_StatusVar is NULL");
+	return LoadIt(global_StatusVar,i,"global_StatusVar_Loaded");
 }
 Instruction *Load_global_StrlenVar(Instruction *i)
 {
-	auto li = new LoadInst(global_StrlenVar,"global_StrlenVar_Loaded");
-	li->insertBefore(i);
-	return li;
+	assert(global_StrlenVar && "global_StrlenVar is NULL");
+	return LoadIt(global_StrlenVar,i,"global_StrlenVar_Loaded");
 }
 /******************************/
 /* Store to special vars:     */
@@ -300,3 +305,57 @@ void Initialize_Ghost_SVar(Function &f,int init_S)
 	
 }
 
+void Instrument_Comparison_to_Ivar(Value *v, Instruction *i)
+{
+	
+}
+void Instrument_Comparison_Non_Constants(Value *v1, Value *v2, Instruction *i)
+{
+	Turn_Status_Flag_On_Conditionally(
+		NegItUp(
+			OrThemUp(
+				OrThemUp(
+					CheckEquality_Ivar_zero(v1,v2,i),
+					CheckEquality_Ivar_zero(v2,v1,i),
+					i),
+				OrThemUp(
+					CheckEquality_Ivar_len(v1,v2,i),
+					CheckEquality_Ivar_len(v2,v1,i),
+					i),
+				i),
+			i),
+		i);
+}
+
+Value *Value_Is_Different_From_Ivar(Value *v,Instruction *i)
+{
+	auto ne = CmpInst::ICMP_NE;
+	auto op = Instruction::OtherOps::ICmp;
+	auto ghost_IVar = Load_ghost_SVar(i);
+	auto ci = CmpInst::Create(
+		op,
+		ne,
+		v,
+		ghost_IVar,
+		"value_is_ne_to_ghost_IVar");
+	ci->insertBefore(i);
+	return ci;
+}
+
+Value *Value_Is_Different_From_SVar_Content(Value *v, Instruction *i)
+{
+	auto ne = CmpInst::ICMP_NE;
+	auto op = Instruction::OtherOps::ICmp;
+	auto ghost_SVar_Content = LoadIt(
+		Load_ghost_SVar(i),
+		i,
+		"ghost_SVar_Content");
+	auto ci = CmpInst::Create(
+		op,
+		ne,
+		v,
+		ghost_SVar_Content,
+		"value_is_ne_to_ghost_SVar_content");
+	ci->insertBefore(i);
+	return ci;
+}
