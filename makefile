@@ -175,7 +175,7 @@ ${STR_LOOPS_DIR}/main
 	rm -rf ${STR_LOOPS_LL_OPT_INSTRUMENTED}/$$dir; \
 	mkdir  ${STR_LOOPS_LL_OPT_INSTRUMENTED}/$$dir; \
 	echo "[ 5 ] Instrumenting bitcode    : $<"
-	@${STR_LOOPS_DIR}/main $< $@/$(notdir $<)
+	${STR_LOOPS_DIR}/main $< $@/$(notdir $<)
 
 ###################################################################
 # [8] run KLEE of instrumented bitcode(s) & generate *.ll file(s) #
@@ -241,7 +241,7 @@ ${STATUS_FILE}: ${STR_LOOPS_STATUS__FILES}
 # [11] clean target ... #
 #########################
 clean:
-	rm     ${STATUS_FILE}
+	rm -f  ${STATUS_FILE}
 	rm -rf ${KLEE_OUTPUT_DIR}
 	mkdir  ${KLEE_OUTPUT_DIR}
 	rm -f  ${STR_LOOPS_DIR}/main

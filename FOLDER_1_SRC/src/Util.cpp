@@ -355,13 +355,15 @@ Value *Value_Is_Different_From_SVar_Content(Value *v, Instruction *i)
 {
 	auto ne = CmpInst::ICMP_NE;
 	auto op = Instruction::OtherOps::ICmp;
-	auto ghost_SVar_Content  = LoadIt(Load_ghost_SVar(i),i,"ghost_SVar_Content");
-	auto ghost_SVar_Content_as_i32 = cast_to_i32(ghost_SVar_Content,i);
+	auto ghost_SVar_Content  = LoadIt(
+		Load_ghost_SVar(i),i,
+		"ghost_SVar_Content");
 
-	auto t1 = ghost_SVar_Content->getType();
-	auto t2 = ghost_SVar_Content_as_i32->getType();
-	auto t3 = v->getType();
-
+	/*********************************************************/
+	/* [1] Comparisons come in two "flavours" with i8 or i32 */
+	/*     Since ghost_SVar is loaded as i8, the first case  */
+	/*     is straight forward, and involves *NO* casting    */
+	/*********************************************************/
 	if (v->getType() == i8_type)
 	{
 		auto ci = CmpInst::Create(
@@ -373,6 +375,11 @@ Value *Value_Is_Different_From_SVar_Content(Value *v, Instruction *i)
 		ci->insertBefore(i);
 		return ci;
 	}
+	/*********************************************************/
+	/* [2] Comparisons come in two "flavours" with i8 or i32 */
+	/*     Since ghost_SVar is loaded as i8, the second case */
+	/*     does involve casting to i32.                      */
+	/*********************************************************/
 	if (v->getType() == i32_type)
 	{
 		auto ci = CmpInst::Create(
