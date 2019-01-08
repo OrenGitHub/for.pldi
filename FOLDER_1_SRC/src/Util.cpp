@@ -21,6 +21,7 @@ using namespace llvm;
 /* GLOBAL VARIABLES */
 /********************/
 Type *i1_type  = nullptr;
+Type *i8_type  = nullptr;
 Type *i32_type = nullptr;
 Type *i8p_type = nullptr;
 
@@ -55,6 +56,14 @@ Type *get_i1_type(LLVMContext &context)
 Type *get_i8p_type(LLVMContext &context)
 {
 	return Type::getInt8PtrTy(context);
+}
+
+/***************************/
+/* Get Character (i8) Type */
+/***************************/
+Type *get_i8_type(LLVMContext &context)
+{
+	return Type::getInt8Ty(context);
 }
 
 /**********************/
@@ -141,12 +150,12 @@ void StoreTo_global_StrlenVar(Value *v,Instruction *i)
 	si->insertBefore(i);
 }
 
-CastInst *ExtendCondition(Value *cond,Instruction *i)
+Value *cast_to_i32(Value *v,Instruction *i)
 {
 	auto ext = Instruction::CastOps::ZExt;
 	auto ci = CastInst::Create(
 		ext,
-		cond,
+		v,
 		i32_type,
 		"zero_extended");
 	ci->insertBefore(i);
@@ -224,7 +233,7 @@ void Turn_Status_Flag_On_Conditionally(Value *cond,Instruction *i)
 	/* Helper Vars */
 	/***************/
 	auto statusVarLoaded = Load_ghost_StatusVar(i);
-	auto condExtended    = ExtendCondition(cond,i);
+	auto condExtended    = cast_to_i32(cond,i);
 	auto condMultiplied  = MulThemUp(condExtended,ConstantInt::get(i32_type,errorCode),i);
 	auto addition        = OrThemUp(condMultiplied,statusVarLoaded,i);
 
@@ -346,16 +355,33 @@ Value *Value_Is_Different_From_SVar_Content(Value *v, Instruction *i)
 {
 	auto ne = CmpInst::ICMP_NE;
 	auto op = Instruction::OtherOps::ICmp;
-	auto ghost_SVar_Content = LoadIt(
-		Load_ghost_SVar(i),
-		i,
-		"ghost_SVar_Content");
-	auto ci = CmpInst::Create(
-		op,
-		ne,
-		v,
-		ghost_SVar_Content,
-		"value_is_ne_to_ghost_SVar_content");
-	ci->insertBefore(i);
-	return ci;
+	auto ghost_SVar_Content  = LoadIt(Load_ghost_SVar(i),i,"ghost_SVar_Content");
+	auto ghost_SVar_Content_as_i32 = cast_to_i32(ghost_SVar_Content,i);
+
+	auto t1 = ghost_SVar_Content->getType();
+	auto t2 = ghost_SVar_Content_as_i32->getType();
+	auto t3 = v->getType();
+
+	if (v->getType() == i8_type)
+	{
+		auto ci = CmpInst::Create(
+			op,
+			ne,
+			v,
+			ghost_SVar_Content,
+			"value_is_ne_to_ghost_SVar_content");
+		ci->insertBefore(i);
+		return ci;
+	}
+	if (v->getType() == i32_type)
+	{
+		auto ci = CmpInst::Create(
+			op,
+			ne,
+			v,
+			cast_to_i32(ghost_SVar_Content,i),
+			"value_is_ne_to_ghost_SVar_content");
+		ci->insertBefore(i);
+		return ci;
+	}	
 }

@@ -18,6 +18,7 @@ using namespace llvm;
 /* GLOBAL VARIABLES */
 /********************/
 extern Type *i1_type;
+extern Type *i8_type;
 extern Type *i32_type;
 extern Type *i8p_type;
 
@@ -42,6 +43,11 @@ Type *get_i1_type(LLVMContext &context);
 /* Get Character Pointer (i8*) Type */
 /************************************/
 Type *get_i8p_type(LLVMContext &context);
+
+/***************************/
+/* Get Character (i8) Type */
+/***************************/
+Type *get_i8_type(LLVMContext &context);
 
 /**********************/
 /* Get Int (i32) Type */

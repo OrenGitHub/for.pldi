@@ -469,6 +469,7 @@ void HandleStringFunc(Function &f)
 	/* [0] Initializations */
 	/***********************/
 	i1_type  = get_i1_type( ctx);
+	i8_type  = get_i8_type( ctx);
 	i32_type = get_i32_type(ctx);
 	i8p_type = get_i8p_type(ctx);
 
