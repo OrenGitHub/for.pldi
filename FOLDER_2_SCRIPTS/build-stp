@@ -1,4 +1,9 @@
 #!/bin/bash
+###############
+# DIRECTORIES #
+###############
+BASEDIR=/home/oren/GIT/for.pldi/FOLDER_2_SCRIPTS
+
 ####################
 # git clone it !!! #
 ####################

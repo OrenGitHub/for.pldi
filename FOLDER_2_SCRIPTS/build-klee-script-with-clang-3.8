@@ -2,9 +2,14 @@
 ###############
 # DIRECTORIES #
 ###############
-KLEE_DIR=/home/oren/GIT/klee/vanilla.klee/klee
-LLVM_DIR=/home/oren/GIT/llvm-3.8.0/
-UCLIBC=/home/oren/GIT/klee/klee-uclibc
+BASEDIR=/home/oren/GIT/for.pldi/FOLDER_2_SCRIPTS
+
+###############
+# DIRECTORIES #
+###############
+KLEE_DIR=${BASEDIR}/klee/vanilla.klee/klee
+LLVM_DIR=${BASEDIR}/llvm-3.8.0/
+UCLIBC=${BASEDIR}/klee/klee-uclibc
 LLVM_BIN_DIR=${LLVM_DIR}/build/bin
 
 #########
@@ -13,11 +18,6 @@ LLVM_BIN_DIR=${LLVM_DIR}/build/bin
 CLANG=${LLVM_BIN_DIR}/clang
 CLANGXX=${LLVM_BIN_DIR}/clang++
 LLVM_CONFIG=${LLVM_BIN_DIR}/llvm-config
-
-###########################################################
-# Too many clang versions on my machine ... use clang3.42 #
-###########################################################
-#PATH=${LLVM_BIN_DIR}:$PATH
 
 #########
 # cmake #

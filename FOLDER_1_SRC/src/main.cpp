@@ -42,6 +42,11 @@ Module *M = nullptr;
 /********************/
 /* GLOBAL VARIABLES */
 /********************/
+Loop *loop = nullptr;
+
+/********************/
+/* GLOBAL VARIABLES */
+/********************/
 map<Value *,bool> isReadValue;
 map<Value *,bool> isPhiValue;
 
@@ -70,6 +75,48 @@ void Initialize_Global_Strlen_Var()
 {
 	global_StrlenVar = M->getGlobalVariable("myStrlen");
 	assert(global_StrlenVar && "global variable myStrlen was not found");
+}
+
+/**********************************************/
+/* Extract_The_Single_Loop_Of_The_String_Func */
+/**********************************************/
+void Extract_The_Single_Loop_Of_The_String_Func(Function &f)
+{
+	/******************************/
+	/* [1] Compute Dominator Tree */
+	/******************************/
+	DominatorTree dt(f);
+
+	/*************************/
+	/* [2] Extract Loop Info */
+	/*************************/
+	LoopInfo li(dt);
+
+	/*************************************/
+	/* [3] Iterate over all basic blocks */
+	/*************************************/
+	for (auto BB = f.begin(); BB != f.end(); BB++)
+	{
+		/*************************************/
+		/* [4] Iterate over all instructions */
+		/*************************************/
+		for (auto inst = BB->begin(); inst != BB->end(); inst++)
+		{
+			/*******************************/
+			/* [5] Extract the loop itself */
+			/*******************************/
+			loop = li.getLoopFor(&*BB);
+
+			/*********************/
+			/* [6] Is it a loop? */
+			/*********************/
+			if (loop)
+			{
+				return;
+			}
+		}
+	}
+	assert(loop && "no loops found in string func");
 }
 
 /*********************/
@@ -104,10 +151,10 @@ Value *AllocateVarHere
 	return ai;
 }
 
-/***********************/
-/* Allocate Ghost Vars */
-/***********************/
-void Allocate_Ghost_Vars(Function &f)
+/**************************************/
+/* Allocate And Initialize Ghost Vars */
+/**************************************/
+void Allocate_And_Initialize_Ghost_Vars(Function &f, int init_I, int init_S)
 {
 	/*************************************/
 	/* [1] Iterate over all basic blocks */
@@ -130,8 +177,13 @@ void Allocate_Ghost_Vars(Function &f)
 			ghost_IVar = AllocateVarHere(i,i32_type,"ghost_IVar",4);
 			ghost_SVar = AllocateVarHere(i,i8p_type,"ghost_SVar",8);
 
+			/*****************************/
+			/* [6] Initialize ghost_IVar */
+			/*****************************/
+			
+
 			/************************************************************/
-			/* [6] Ha ha ... fancy nested loop ... all we actually need */
+			/* [7] Ha ha ... fancy nested loop ... all we actually need */
 			/*     is the very first instruction of the function        */
 			/************************************************************/
 			return;
@@ -254,7 +306,7 @@ void Instrument_Comparison(CmpInst *i)
 /*******************************/
 /* Instrument Loop Comparisons */
 /*******************************/
-void Instrument_Loop_Comparisons(Loop *l)
+void Instrument_Comparisons(Loop *l)
 {
 	/*************************************/
 	/* [1] Iterate over all basic blocks */
@@ -285,7 +337,7 @@ void Instrument_Loop_Comparisons(Loop *l)
 /*******************/
 /* Instrument Read */
 /*******************/
-void Instrument_Read(Value *v1, Value *v2)
+void Instrument_Assign(Value *v1, Value *v2)
 {
 	if (isReadValue[v1])
 	{
@@ -293,10 +345,10 @@ void Instrument_Read(Value *v1, Value *v2)
 	}
 }
 
-/********************/
-/* Instrument Reads */
-/********************/
-void Instrument_Reads(Loop *l)
+/**********************/
+/* Instrument Assigns */
+/**********************/
+void Instrument_Assigns(Loop *l)
 {
 	/*************************************/
 	/* [1] Iterate over all basic blocks */
@@ -314,11 +366,11 @@ void Instrument_Reads(Loop *l)
 			Instruction *i = &(*(inst));
 
 			/*****************************/
-			/* [4] Instrument Comparison */
+			/* [4] Instrument Assignment */
 			/*****************************/
-			if (auto si = dyn_cast<SExtInst> (i)) { Instrument_Read(si->getOperand(0),si); }
-			if (auto zi = dyn_cast<ZExtInst> (i)) { Instrument_Read(zi->getOperand(0),zi); }
-			if (auto ti = dyn_cast<TruncInst>(i)) { Instrument_Read(ti->getOperand(0),ti); }
+			if (auto si = dyn_cast<SExtInst> (i)) { Instrument_Assign(si->getOperand(0),si); }
+			if (auto zi = dyn_cast<ZExtInst> (i)) { Instrument_Assign(zi->getOperand(0),zi); }
+			if (auto ti = dyn_cast<TruncInst>(i)) { Instrument_Assign(ti->getOperand(0),ti); }
 		}
 	}
 }
@@ -326,7 +378,7 @@ void Instrument_Reads(Loop *l)
 /*******************/
 /* Instrument Read */
 /*******************/
-void Instrument_Load(LoadInst *i)
+void Instrument_Read(LoadInst *i)
 {
 	if (i->getType()->isIntegerTy(8))
 	{
@@ -337,7 +389,7 @@ void Instrument_Load(LoadInst *i)
 /********************/
 /* Instrument Loads */
 /********************/
-void Instrument_Loads(Loop *l)
+void Instrument_Reads(Loop *l)
 {
 	/*************************************/
 	/* [1] Iterate over all basic blocks */
@@ -359,66 +411,7 @@ void Instrument_Loads(Loop *l)
 			/***********************/
 			if (auto li = dyn_cast<LoadInst>(i))
 			{
-				Instrument_Load(li);
-			}
-		}
-	}
-}
-
-/***********************************/
-/* Instrument Function Comparisons */
-/***********************************/
-void Instrument_Function_Comparisons(Function &f)
-{
-	/******************************/
-	/* [1] Compute Dominator Tree */
-	/******************************/
-	DominatorTree dt(f);
-
-	/*************************/
-	/* [2] Extract Loop Info */
-	/*************************/
-	LoopInfo li(dt);
-
-	/*************************************/
-	/* [3] Iterate over all basic blocks */
-	/*************************************/
-	for (auto BB = f.begin(); BB != f.end(); BB++)
-	{
-		/*************************************/
-		/* [4] Iterate over all instructions */
-		/*************************************/
-		for (auto inst = BB->begin(); inst != BB->end(); inst++)
-		{
-			/*******************************/
-			/* [5] Extract the loop itself */
-			/*******************************/
-			Loop *l = li.getLoopFor(&*BB);
-
-			/*********************/
-			/* [6] Is it a loop? */
-			/*********************/
-			if (l)
-			{
-				/*****************************************/
-				/* [7] Instrument Inner loop comparisons */
-				/*****************************************/
-				Instrument_Loads(l);
-
-				/*****************************************/
-				/* [8] Instrument Inner loop comparisons */
-				/*****************************************/
-				Instrument_Reads(l);
-
-				/*****************************************/
-				/* [9] Instrument Inner loop comparisons */
-				/*****************************************/
-				Instrument_Loop_Comparisons(l);
-
-				/**************************************/
-				/* [10] Assume there is only one loop */
-				/**************************************/
-				return;
+				Instrument_Read(li);
 			}
 		}
 	}
@@ -489,24 +482,25 @@ void HandleStringFunc(Function &f)
 	/**********************************************************/
 	if (Function_Calls_Other_Functions(f)) { return; }
 
-	/******************************************/
-	/* [3] Allocate ghost_IVar and ghost_SVar */
-	/******************************************/
-	Allocate_Ghost_Vars(f);
+	/********************************************************/
+	/* [4] Extract the *SINGLE* loop of the string function */
+	/********************************************************/
+	Extract_The_Single_Loop_Of_The_String_Func(f);
 
-	/********************************************/
-	/* [4] Initialize ghost_IVar and ghost_SVar */
-	/********************************************/
-	Initialize_Ghost_IVar(f,init_I);
-	Initialize_Ghost_SVar(f,init_S);
+	/*********************************************************/
+	/* [5] Allocate and Initialize ghost_IVar and ghost_SVar */
+	/*********************************************************/
+	Allocate_And_Initialize_Ghost_Vars(f,init_I,init_S);
 	
-	/***************************************/
-	/* [5] Instrument Function Comparisons */
-	/***************************************/
-	Instrument_Function_Comparisons(f);
+	/***********************************************/
+	/* [6] Instrument Loads, Reads and Comparisons */
+	/***********************************************/
+	Instrument_Reads(loop);
+	Instrument_Assigns(loop);
+	Instrument_Comparisons(loop);
 
 	/***********************************************/
-	/* [6] Instrument Pointer & Integer increments */
+	/* [7] Instrument Pointer & Integer increments */
 	/***********************************************/
 	Update_Ghost_IVar(f,inc_I);
 	Update_Ghost_SVar(f,inc_S);

@@ -63,11 +63,21 @@ void StoreToStatusVar(  Value *v, Instruction *i);
 void StoreToIntGhostVar(Value *v, Instruction *i);
 CastInst *ExtendCondition(Value *cond,Instruction *i);
 
-Instruction *OrThemUp( Value *v1,Value *v2, Instruction *i);
-Instruction *AndThemUp(Value *v1,Value *v2, Instruction *i);
+/*************************/
+/* The BINOP operations: */
+/*                       */
+/* Add                   */
+/* Sub                   */
+/* Mul                   */
+/* And                   */
+/* Or                    */
+/*                       */
+/*************************/
 Instruction *AddThemUp(Value *v1,Value *v2, Instruction *i);
 Instruction *SubThemUp(Value *v1,Value *v2, Instruction *i);
 Instruction *MulThemUp(Value *v1,Value *v2, Instruction *i);
+Instruction *AndThemUp(Value *v1,Value *v2, Instruction *i);
+Instruction *OrThemUp( Value *v1,Value *v2, Instruction *i);
 
 void Turn_Status_Flag_On(Instruction *i);
 void Turn_Status_Flag_On_Conditionally(Value *cond,Instruction *i);
@@ -75,9 +85,6 @@ Instruction *NegItUp(Value *v,Instruction *i);
 
 Instruction *CheckEquality_Ivar_len( Value *v1,Value *v2,Instruction *i);
 Instruction *CheckEquality_Ivar_zero(Value *v1,Value *v2,Instruction *i);
-
-void Initialize_Ghost_IVar(Function &f,int init_I);
-void Initialize_Ghost_SVar(Function &f,int init_S);
 
 void Update_Ghost_IVar(Function &f,int inc_I);
 void Update_Ghost_SVar(Function &f,int inc_S);

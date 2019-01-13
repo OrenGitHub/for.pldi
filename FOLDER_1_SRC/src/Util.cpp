@@ -120,35 +120,27 @@ Instruction *Load_global_StrlenVar(Instruction *i)
 	assert(global_StrlenVar && "global_StrlenVar is NULL");
 	return LoadIt(global_StrlenVar,i,"global_StrlenVar_Loaded");
 }
+/****************/
+/* Generic Load */
+/****************/
+void StoreIt(Value *v, Value *dst, Instruction *i)
+{
+	auto si = new StoreInst(v,dst);
+	si->insertBefore(i);
+}
 /******************************/
 /* Store to special vars:     */
 /*                            */
 /* ghost_IVar                 */
 /* ghost_SVar                 */
-/* ghost_StatusVar            */
-/* global_StrlenVar            */
+/* global_StatusVar           */
+/* global_StrlenVar           */
 /*                            */
 /******************************/
-void StoreTo_ghost_IVar(Value *v, Instruction *i)
-{
-	auto si = new StoreInst(v,ghost_IVar);
-	si->insertBefore(i);
-}
-void StoreTo_ghost_SVar(Value *v, Instruction *i)
-{
-	auto si = new StoreInst(v,ghost_SVar);
-	si->insertBefore(i);
-}
-void StoreTo_ghost_StatusVar(Value *v,Instruction *i)
-{
-	auto si = new StoreInst(v,global_StatusVar);
-	si->insertBefore(i);
-}
-void StoreTo_global_StrlenVar(Value *v,Instruction *i)
-{
-	auto si = new StoreInst(v,global_StrlenVar);
-	si->insertBefore(i);
-}
+void StoreTo_ghost_IVar(      Value *v,Instruction *i){ StoreIt(v,ghost_IVar,      i); }
+void StoreTo_ghost_SVar(      Value *v,Instruction *i){ StoreIt(v,ghost_SVar,      i); }
+void StoreTo_global_StatusVar(Value *v,Instruction *i){ StoreIt(v,global_StatusVar,i); }
+void StoreTo_global_StrlenVar(Value *v,Instruction *i){	StoreIt(v,global_StrlenVar,i); }
 
 Value *cast_to_i32(Value *v,Instruction *i)
 {
@@ -222,7 +214,7 @@ void Turn_Status_Flag_On(Instruction *i)
 	/********************/
 	/* Actual store ... */
 	/********************/
-	StoreTo_ghost_StatusVar(ConstantInt::get(i32_type,1),i);
+	StoreTo_global_StatusVar(ConstantInt::get(i32_type,1),i);
 }
 /********************************************************/
 /* Turn Status flag one conditionally (with error code) */
@@ -240,7 +232,7 @@ void Turn_Status_Flag_On_Conditionally(Value *cond,Instruction *i)
 	/********************/
 	/* Actual store ... */
 	/********************/
-	StoreTo_ghost_StatusVar(addition,i);
+	StoreTo_global_StatusVar(addition,i);
 }
 /***************************************************/
 /* Check Equality and make sure it satisfies:      */
@@ -305,19 +297,6 @@ void Update_Ghost_SVar(Function &f, int inc_S)
 {
 }
 
-void Initialize_Ghost_IVar(Function &f,int init_I)
-{
-	
-}
-void Initialize_Ghost_SVar(Function &f,int init_S)
-{
-	
-}
-
-void Instrument_Comparison_to_Ivar(Value *v, Instruction *i)
-{
-	
-}
 void Instrument_Comparison_Non_Constants(Value *v1, Value *v2, Instruction *i)
 {
 	Turn_Status_Flag_On_Conditionally(

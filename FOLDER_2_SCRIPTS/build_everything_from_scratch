@@ -1,0 +1,16 @@
+#!/bin/bash
+###############
+# DIRECTORIES #
+###############
+BASEDIR=/home/oren/GIT/for.pldi/FOLDER_2_SCRIPTS
+
+#############
+# BUILD ALL #
+#############
+${BASEDIR}/build-z3
+${BASEDIR}/build-stp
+${BASEDIR}/build-uclibc
+${BASEDIR}/build-minisat
+${BASEDIR}/build-llvm-3.8.0
+${BASEDIR}/build-klee-with-clang-3.8
+
