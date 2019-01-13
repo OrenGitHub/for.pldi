@@ -59,8 +59,34 @@ Type *get_i32_type(LLVMContext &context);
 /*******************/
 bool is_i32_type(Value *v);
 
-void StoreToStatusVar(  Value *v, Instruction *i);
-void StoreToIntGhostVar(Value *v, Instruction *i);
+/******************************/
+/* Load special vars:         */
+/*                            */
+/* ghost_IVar                 */
+/* ghost_SVar                 */
+/* global_StatusVar           */
+/* global_StrlenVar           */
+/*                            */
+/******************************/
+Instruction *Load_ghost_IVar(      Instruction *i);
+Instruction *Load_ghost_SVar(      Instruction *i);
+Instruction *Load_ghost_StatusVar( Instruction *i);
+Instruction *Load_global_StrlenVar(Instruction *i);
+
+/******************************/
+/* Store to special vars:     */
+/*                            */
+/* ghost_IVar                 */
+/* ghost_SVar                 */
+/* global_StatusVar           */
+/* global_StrlenVar           */
+/*                            */
+/******************************/
+void StoreTo_ghost_IVar(        Value *v, Instruction *i);
+void StoreTo_ghost_sVar(        Value *v, Instruction *i);
+void StoreTo_global_StatusVar(  Value *v, Instruction *i);
+void StoreTo_global_StrlenVar(  Value *v, Instruction *i);
+
 CastInst *ExtendCondition(Value *cond,Instruction *i);
 
 /*************************/

@@ -120,21 +120,22 @@ STR_LOOPS_BC_OPT_INSTRUMENTED_FILES = $(wildcard ${STR_LOOPS_BC_OPT_INSTRUMENTED
 # [1] compile application source file(s) to object file(s) #
 ############################################################
 ${STR_LOOPS_OBJ_DIR}/%.cpp.o: ${STR_LOOPS_SRC_DIR}/%.cpp ${STR_LOOPS_HEADER_FILES}
-	@echo "Compiling Application File: $<"
+	@echo "[ 0 ] Compiling Application File: $<"
 	@g++ -g ${DFLAGS} ${IFLAGS} -o $@ -c $<
 
 ##########################################################
 # [2] link object files to a runnable application (main) #
 ##########################################################
 ${STR_LOOPS_DIR}/main: ${STR_LOOPS_OBJ_FILES}
-	@echo "Linking Application File : ${STR_LOOPS_DIR}/main"
+	@echo "[ 0 ] Linking Application File : ${STR_LOOPS_DIR}/main"
 	@g++ ${STR_LOOPS_OBJ_FILES} -o ${STR_LOOPS_DIR}/main ${LFLAGS}
 
 ####################################################
 # [3] create bitcode from each example source file #
 ####################################################
 ${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc: \
-${STR_LOOPS_C_EXAMPLES_DIR}/%.c
+${STR_LOOPS_C_EXAMPLES_DIR}/%.c    \
+${STR_LOOPS_DIR}/main
 	@echo "[ 1 ] Generating bitcode   from: $<"
 	@clang ${CLANG_FLAGS} $< -o $@
 
@@ -176,7 +177,7 @@ ${STR_LOOPS_DIR}/main
 	rm -rf ${STR_LOOPS_LL_OPT_INSTRUMENTED}/$$dir; \
 	mkdir  ${STR_LOOPS_LL_OPT_INSTRUMENTED}/$$dir; \
 	echo "[ 5 ] Instrumenting bitcode    : $<"
-	${STR_LOOPS_DIR}/main $< $@/$(notdir $<)
+	@${STR_LOOPS_DIR}/main $< $@/$(notdir $<)
 
 ###################################################################
 # [8] run KLEE of instrumented bitcode(s) & generate *.ll file(s) #

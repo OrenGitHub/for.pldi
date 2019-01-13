@@ -120,9 +120,9 @@ Instruction *Load_global_StrlenVar(Instruction *i)
 	assert(global_StrlenVar && "global_StrlenVar is NULL");
 	return LoadIt(global_StrlenVar,i,"global_StrlenVar_Loaded");
 }
-/****************/
-/* Generic Load */
-/****************/
+/*****************/
+/* Generic Store */
+/*****************/
 void StoreIt(Value *v, Value *dst, Instruction *i)
 {
 	auto si = new StoreInst(v,dst);

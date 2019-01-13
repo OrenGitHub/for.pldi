@@ -77,6 +77,71 @@ void Initialize_Global_Strlen_Var()
 	assert(global_StrlenVar && "global variable myStrlen was not found");
 }
 
+bool BasicBlockBelongsToLoop(BasicBlock *BB, Loop *loop)
+{
+	for (auto it = loop->block_begin(); it != loop->block_end(); it++)
+	{
+		if (BB == (*it))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Is_Used_Outside_This_loop(Loop *loop, Value *v)
+{
+	unsigned int n=0;
+
+	/**************************************/
+	/* Iterate over *ALL* uses of value v */
+	/**************************************/
+	for (auto use = v->use_begin(); use != v->use_end(); use++)
+	{
+		Instruction *i = (Instruction *) &(*(use));
+
+		if (BasicBlockBelongsToLoop(i->getParent(),loop))
+		{
+			/*******************************************/
+			/* Count uses of value v WITHIN the loop l */
+			/*******************************************/
+			n++;
+		}
+	}
+
+	/**********************************************/
+	/* Sanity check: uses WITHIN loop <= ALL uses */
+	/**********************************************/
+	assert(n <= v->getNumUses());
+
+	/*****************************************/
+	/* Check if: uses WITHIN loop < ALL uses */
+	/*****************************************/
+	if (n < v->getNumUses())
+	{
+		/*****************************************************/
+		/* found a value that is being used outside the loop */
+		/*****************************************************/
+		ghost_SVar = v;
+		return true;
+	}
+	return false;
+}
+
+/***************************************/
+/* Extract_The_Single_Svar_Of_The_Loop */
+/***************************************/
+void Extract_The_Single_Svar_Of_The_Loop(Loop *l)
+{
+	for (auto BB = loop->block_begin();BB != loop->block_end(); BB++)
+	{
+		for (auto inst = (*BB)->begin(); inst != (*BB)->end(); inst++)
+		{
+			Instruction *i = &(*(inst));
+		}
+	}
+}
+
 /**********************************************/
 /* Extract_The_Single_Loop_Of_The_String_Func */
 /**********************************************/
@@ -180,10 +245,15 @@ void Allocate_And_Initialize_Ghost_Vars(Function &f, int init_I, int init_S)
 			/*****************************/
 			/* [6] Initialize ghost_IVar */
 			/*****************************/
-			
+			if (init_I==0){StoreTo_ghost_IVar(ConstantInt::get(i32_type,0),i);}
+			if (init_I==1){StoreTo_ghost_IVar(Load_global_StrlenVar(i),    i);}
+
+			/*****************************/
+			/* [7] Initialize ghost_SVar */
+			/*****************************/
 
 			/************************************************************/
-			/* [7] Ha ha ... fancy nested loop ... all we actually need */
+			/* [8] Ha ha ... fancy nested loop ... all we actually need */
 			/*     is the very first instruction of the function        */
 			/************************************************************/
 			return;
