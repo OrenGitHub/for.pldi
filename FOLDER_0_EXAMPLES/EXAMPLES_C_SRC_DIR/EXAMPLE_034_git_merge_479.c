@@ -19,14 +19,16 @@
 int myStatus=0;
 int myStrlen=0;
 
-char *loopFunction(char *remote) {
-  // git-2.18.0/builtin/merge.c:479:2
-  char* ptr;
-  int len;
-  for (len = 0, ptr = remote + strlen(remote); remote < ptr && ptr[-1] == '^';
-       ptr--)
-    len++;
-  return ptr;
+char *loopFunction(char *remote)
+{
+    char* ptr;
+    int len;
+    // for (len = 0, ptr = remote + strlen(remote); remote < ptr && ptr[-1] == '^'; ptr--)
+    for (len = 0, ptr = remote + myStrlen; remote < ptr && ptr[-1] == '^'; ptr--)
+    {
+        len++;
+    }
+    return ptr;
 }
 
 int main(int argc, char **argv)
