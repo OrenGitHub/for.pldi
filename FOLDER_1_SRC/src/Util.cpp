@@ -214,7 +214,7 @@ void Turn_Status_Flag_On(Instruction *i)
 	/********************/
 	/* Actual store ... */
 	/********************/
-	StoreTo_global_StatusVar(ConstantInt::get(i32_type,1),i);
+	StoreTo_global_StatusVar(ConstantInt::get(i32_type,342),i);
 }
 /********************************************************/
 /* Turn Status flag one conditionally (with error code) */

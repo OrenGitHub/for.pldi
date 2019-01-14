@@ -131,7 +131,7 @@ bool Is_Used_Outside_This_loop(Loop *loop, Value *v)
 /***************************************/
 /* Extract_The_Single_Svar_Of_The_Loop */
 /***************************************/
-void Extract_The_Single_Svar_Of_The_Loop(Loop *l)
+void Extract_The_Single_Svar_Of_The_Loop(Loop *loop)
 {
 	for (auto BB = loop->block_begin();BB != loop->block_end(); BB++)
 	{
@@ -142,21 +142,27 @@ void Extract_The_Single_Svar_Of_The_Loop(Loop *l)
 	}
 }
 
+void GO()
+{
+	static int i=1;
+	BasicBlock *b = nullptr;
+	static BasicBlock *orenBB = *(loop->block_begin());
+	errs() << "orenBB name: " << orenBB->getName() << "\n";
+	
+	errs() << "loop address is: " << loop << "\n";
+	for (auto BB = loop->block_begin(); BB != loop->block_end(); BB++)
+	{
+		b = *BB;
+		errs() << "Loop " << i << " BB name: " << b->getName() << "\n";
+	}
+	i++;
+}
+
 /**********************************************/
 /* Extract_The_Single_Loop_Of_The_String_Func */
 /**********************************************/
-void Extract_The_Single_Loop_Of_The_String_Func(Function &f)
+void Extract_The_Single_Loop_Of_The_String_Func(Function &f,LoopInfo &li)
 {
-	/******************************/
-	/* [1] Compute Dominator Tree */
-	/******************************/
-	DominatorTree dt(f);
-
-	/*************************/
-	/* [2] Extract Loop Info */
-	/*************************/
-	LoopInfo li(dt);
-
 	/*************************************/
 	/* [3] Iterate over all basic blocks */
 	/*************************************/
@@ -181,7 +187,7 @@ void Extract_The_Single_Loop_Of_The_String_Func(Function &f)
 			}
 		}
 	}
-	assert(loop && "no loops found in string func");
+	assert(0 && "no loops found in string func");
 }
 
 /*********************/
@@ -376,12 +382,12 @@ void Instrument_Comparison(CmpInst *i)
 /*******************************/
 /* Instrument Loop Comparisons */
 /*******************************/
-void Instrument_Comparisons(Loop *l)
+void Instrument_Comparisons(Loop *loop)
 {
 	/*************************************/
 	/* [1] Iterate over all basic blocks */
 	/*************************************/
-	for (auto BB = l->block_begin(); BB != l->block_end(); BB++)
+	for (auto BB = loop->block_begin(); BB != loop->block_end(); BB++)
 	{
 		/************************************************************/
 		/* [2] Iterate over all the instructions of the basic block */
@@ -418,13 +424,13 @@ void Instrument_Assign(Value *v1, Value *v2)
 /**********************/
 /* Instrument Assigns */
 /**********************/
-void Instrument_Assigns(Loop *l)
+void Instrument_Assigns(const Loop *loop)
 {
 	/*************************************/
 	/* [1] Iterate over all basic blocks */
 	/*************************************/
-	for (auto BB = l->block_begin(); BB != l->block_end(); BB++)
-	{
+	for (auto BB = loop->block_begin(); BB != loop->block_end(); BB++)
+	{		
 		/************************************************************/
 		/* [2] Iterate over all the instructions of the basic block */
 		/************************************************************/
@@ -459,13 +465,13 @@ void Instrument_Read(LoadInst *i)
 /********************/
 /* Instrument Loads */
 /********************/
-void Instrument_Reads(Loop *l)
+void Instrument_Reads(Loop *loop)
 {
 	/*************************************/
 	/* [1] Iterate over all basic blocks */
 	/*************************************/
-	for (auto BB = l->block_begin(); BB != l->block_end(); BB++)
-	{
+	for (auto BB = loop->block_begin(); BB != loop->block_end(); BB++)
+	{		
 		/************************************************************/
 		/* [2] Iterate over all the instructions of the basic block */
 		/************************************************************/
@@ -536,32 +542,32 @@ void HandleStringFunc(Function &f)
 	i32_type = get_i32_type(ctx);
 	i8p_type = get_i8p_type(ctx);
 
-	/******************************/
-	/* [1] Print Handled Function */
-	/******************************/
-	// errs() << f.getName() << "\n";
-
 	/**********************************************/
-	/* [2] Initialize global status & strlen vars */
+	/* [1] Initialize global status & strlen vars */
 	/**********************************************/
 	Initialize_Global_Status_Var();
 	Initialize_Global_Strlen_Var();
 
 	/**********************************************************/
-	/* [3] Exclude string functions that call other functions */
+	/* [2] Exclude string functions that call other functions */
 	/**********************************************************/
 	if (Function_Calls_Other_Functions(f)) { return; }
 
-	/********************************************************/
-	/* [4] Extract the *SINGLE* loop of the string function */
-	/********************************************************/
-	Extract_The_Single_Loop_Of_The_String_Func(f);
+	/**************************************************/
+	/* [3] Compute Dominator Tree & Extract Loop Info */
+	/**************************************************/
+	DominatorTree dt(f); LoopInfo li(dt);
+
+	/****************************************************/
+	/* [4] Extract the *SINGLE* loop of the String Func */
+	/****************************************************/
+	Extract_The_Single_Loop_Of_The_String_Func(f,li);
 
 	/*********************************************************/
 	/* [5] Allocate and Initialize ghost_IVar and ghost_SVar */
 	/*********************************************************/
 	Allocate_And_Initialize_Ghost_Vars(f,init_I,init_S);
-	
+
 	/***********************************************/
 	/* [6] Instrument Loads, Reads and Comparisons */
 	/***********************************************/

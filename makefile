@@ -8,7 +8,7 @@ BASEDIR = ${HOME}/GIT
 ###############
 LLVM_DIR         = ${BASEDIR}/llvm-3.8.0
 LLVM_SRC_DIR     = ${LLVM_DIR}/llvm
-LLVM_BUILD_DIR   = ${LLVM_DIR}/build
+LLVM_BUILD_DIR   = ${LLVM_DIR}/build-debug
 LLVM_LIB_DIR     = ${LLVM_BUILD_DIR}/lib
 LLVM_INCLUDE_DIR = ${LLVM_SRC_DIR}/include
 
@@ -121,7 +121,7 @@ STR_LOOPS_BC_OPT_INSTRUMENTED_FILES = $(wildcard ${STR_LOOPS_BC_OPT_INSTRUMENTED
 ############################################################
 ${STR_LOOPS_OBJ_DIR}/%.cpp.o: ${STR_LOOPS_SRC_DIR}/%.cpp ${STR_LOOPS_HEADER_FILES}
 	@echo "[ 0 ] Compiling Application File: $<"
-	@g++ -g ${DFLAGS} ${IFLAGS} -o $@ -c $<
+	@g++ -g -O0 ${DFLAGS} ${IFLAGS} -o $@ -c $<
 
 ##########################################################
 # [2] link object files to a runnable application (main) #
