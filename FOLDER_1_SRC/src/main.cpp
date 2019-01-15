@@ -62,6 +62,11 @@ int init_S = 0;
 int inc_I = 1;
 int inc_S = 1;
 
+/********************/
+/* GLOBAL VARIABLES */
+/********************/
+Value *ghost_SVar_init_value = nullptr;
+
 /************************************/
 /* Initialize myStatus and myStrlen */
 /************************************/
@@ -128,16 +133,67 @@ bool Is_Used_Outside_This_loop(Loop *loop, Value *v)
 	return false;
 }
 
+bool Is_Type_i8pp(Value *v)
+{
+	if (v->getType()->isPointerTy())
+	{
+		PointerType *p1 = (PointerType *) v->getType();
+		if (p1->getElementType()->isPointerTy())
+		{
+			PointerType *p2 = (PointerType *) p1->getElementType();
+			if (p2->getElementType()->isIntegerTy(8))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool I_am_your_svar(Value *v)
+{
+	return
+		Is_Used_Outside_This_loop(loop,v) &&
+		Is_Type_i8pp(v);
+}
+
 /***************************************/
 /* Extract_The_Single_Svar_Of_The_Loop */
 /***************************************/
 void Extract_The_Single_Svar_Of_The_Loop(Loop *loop)
 {
+	/*************************************************/
+	/* [1] Iterate over all basic blocks of the loop */
+	/*************************************************/
 	for (auto BB = loop->block_begin();BB != loop->block_end(); BB++)
 	{
 		for (auto inst = (*BB)->begin(); inst != (*BB)->end(); inst++)
 		{
 			Instruction *i = &(*(inst));
+			
+			if (I_am_your_svar(i))
+			{
+				ghost_SVar_init_value = i;
+				return;
+			}
+			
+			if (auto li = dyn_cast<LoadInst>(i))
+			{
+				if (I_am_your_svar(li->getPointerOperand()))
+				{
+					ghost_SVar_init_value = li->getPointerOperand();
+					return;
+				}
+			}
+
+			if (auto si = dyn_cast<StoreInst>(i))
+			{
+				if (I_am_your_svar(si->getPointerOperand()))
+				{
+					ghost_SVar_init_value = si->getPointerOperand();
+					return;
+				}
+			}
 		}
 	}
 }
@@ -257,6 +313,8 @@ void Allocate_And_Initialize_Ghost_Vars(Function &f, int init_I, int init_S)
 			/*****************************/
 			/* [7] Initialize ghost_SVar */
 			/*****************************/
+			Extract_The_Single_Svar_Of_The_Loop(loop);
+			if (init_S==0){StoreTo_ghost_SVar(LoadIt(ghost_SVar_init_value,i));}
 
 			/************************************************************/
 			/* [8] Ha ha ... fancy nested loop ... all we actually need */

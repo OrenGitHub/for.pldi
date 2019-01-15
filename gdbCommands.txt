@@ -1,0 +1,9 @@
+##################################################
+# [0] Put a breakpoint in main and start running #
+##################################################
+break main
+run
+
+break GO
+cont
+
