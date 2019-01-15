@@ -59,6 +59,11 @@ Type *get_i32_type(LLVMContext &context);
 /*******************/
 bool is_i32_type(Value *v);
 
+/****************/
+/* Generic Load */
+/****************/
+Instruction *LoadIt(Value *v, Instruction *i, const char *name);
+
 /******************************/
 /* Load special vars:         */
 /*                            */
@@ -83,7 +88,7 @@ Instruction *Load_global_StrlenVar(Instruction *i);
 /*                            */
 /******************************/
 void StoreTo_ghost_IVar(        Value *v, Instruction *i);
-void StoreTo_ghost_sVar(        Value *v, Instruction *i);
+void StoreTo_ghost_SVar(        Value *v, Instruction *i);
 void StoreTo_global_StatusVar(  Value *v, Instruction *i);
 void StoreTo_global_StrlenVar(  Value *v, Instruction *i);
 

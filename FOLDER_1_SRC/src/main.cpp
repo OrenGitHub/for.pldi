@@ -127,7 +127,6 @@ bool Is_Used_Outside_This_loop(Loop *loop, Value *v)
 		/*****************************************************/
 		/* found a value that is being used outside the loop */
 		/*****************************************************/
-		ghost_SVar = v;
 		return true;
 	}
 	return false;
@@ -196,6 +195,7 @@ void Extract_The_Single_Svar_Of_The_Loop(Loop *loop)
 			}
 		}
 	}
+	assert(0 && "svar not found");
 }
 
 void GO()
@@ -281,48 +281,79 @@ Value *AllocateVarHere
 /**************************************/
 /* Allocate And Initialize Ghost Vars */
 /**************************************/
+void Allocate_Ghost_Vars(Function &f)
+{
+	/*******************************************************/
+	/* [1] Take the very first basic block of the function */
+	/*******************************************************/
+	auto BB = f.begin();
+
+	/*********************************************/
+	/* [2] Take the very first instruction of BB */
+	/*********************************************/
+	auto inst = BB->begin();
+
+	/*******************************************/
+	/* [3] cast iterator to actual instruction */
+	/*******************************************/
+	Instruction *i = &(*(inst));
+
+	/******************************************************/
+	/* [4] Actual Allocation of ghost_IVar and ghost_SVar */
+	/******************************************************/
+	ghost_IVar = AllocateVarHere(i,i32_type,"ghost_IVar",4);
+	ghost_SVar = AllocateVarHere(i,i8p_type,"ghost_SVar",8);
+}
+
+/**************************************/
+/* Allocate And Initialize Ghost Vars */
+/**************************************/
+void Initialize_Ghost_Vars(Function &f, int init_I, int init_S)
+{
+	/*******************************************************/
+	/* [1] Take the very first basic block of the function */
+	/*******************************************************/
+	auto BB = f.begin();
+
+	/********************************************/
+	/* [2] Take the very last instruction of BB */
+	/********************************************/
+	Instruction *i = (&(*BB))->getTerminator();
+
+	/**************************************/
+	/* [3] Initialize ghost_IVar is easy: */
+	/*     either 0 or myStrlen ...       */
+	/**************************************/
+	if (init_I==0){StoreTo_ghost_IVar(ConstantInt::get(i32_type,0),i);}
+	if (init_I==1){StoreTo_ghost_IVar(Load_global_StrlenVar(i),    i);}
+
+	/***********************************/
+	/* [4] Find *THE* svar of the loop */
+	/***********************************/
+	Extract_The_Single_Svar_Of_The_Loop(loop);
+
+	/*****************************************************/
+	/* [5] Initialize ghost_SVar with either svar itself */
+	/*     or, alternatively, svar+myStrlen              */
+	/*****************************************************/
+	if (init_S==0){StoreTo_ghost_SVar(LoadIt(ghost_SVar_init_value,i,"ghost_SVar_init_value_loaded"),i);}
+	if (init_S==1){StoreTo_ghost_SVar(LoadIt(ghost_SVar_init_value,i,"ghost_SVar_init_value_loaded"),i);}
+}
+
+/**************************************/
+/* Allocate And Initialize Ghost Vars */
+/**************************************/
 void Allocate_And_Initialize_Ghost_Vars(Function &f, int init_I, int init_S)
 {
-	/*************************************/
-	/* [1] Iterate over all basic blocks */
-	/*************************************/
-	for (auto BB = f.begin(); BB != f.end(); BB++)
-	{
-		/************************************************************/
-		/* [2] Iterate over all the instructions of the basic block */
-		/************************************************************/
-		for (auto inst = BB->begin(); inst != BB->end(); inst++)
-		{
-			/*******************************************/
-			/* [3] cast iterator to actual instruction */
-			/*******************************************/
-			Instruction *i = &(*(inst));
+	/******************************************/
+	/* [1] Allocate ghost_IVar and ghost_SVar */
+	/******************************************/
+	Allocate_Ghost_Vars(f);
 
-			/******************************************************/
-			/* [5] Actual Allocation of ghost_IVar and ghost_SVar */
-			/******************************************************/
-			ghost_IVar = AllocateVarHere(i,i32_type,"ghost_IVar",4);
-			ghost_SVar = AllocateVarHere(i,i8p_type,"ghost_SVar",8);
-
-			/*****************************/
-			/* [6] Initialize ghost_IVar */
-			/*****************************/
-			if (init_I==0){StoreTo_ghost_IVar(ConstantInt::get(i32_type,0),i);}
-			if (init_I==1){StoreTo_ghost_IVar(Load_global_StrlenVar(i),    i);}
-
-			/*****************************/
-			/* [7] Initialize ghost_SVar */
-			/*****************************/
-			Extract_The_Single_Svar_Of_The_Loop(loop);
-			if (init_S==0){StoreTo_ghost_SVar(LoadIt(ghost_SVar_init_value,i));}
-
-			/************************************************************/
-			/* [8] Ha ha ... fancy nested loop ... all we actually need */
-			/*     is the very first instruction of the function        */
-			/************************************************************/
-			return;
-		}
-	}
+	/********************************************/
+	/* [2] Initialize ghost_IVar and ghost_SVar */
+	/********************************************/
+	Initialize_Ghost_Vars(f,init_I,init_S);
 }
 
 /*************************/
