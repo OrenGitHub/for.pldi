@@ -7,6 +7,7 @@
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/Analysis/LoopInfo.h"
 
 /**************/
 /* NAMESPACES */
@@ -34,6 +35,11 @@ extern Value *ghost_SVar;
 extern Value *global_StatusVar;
 extern Value *global_StrlenVar;
 
+/********************/
+/* GLOBAL VARIABLES */
+/********************/
+extern Value *ghost_SVar_init_value;
+
 /*************************/
 /* Get Boolean (i1) Type */
 /*************************/
@@ -58,11 +64,6 @@ Type *get_i32_type(LLVMContext &context);
 /* Is Int(32) Type */
 /*******************/
 bool is_i32_type(Value *v);
-
-/****************/
-/* Generic Load */
-/****************/
-Instruction *LoadIt(Value *v, Instruction *i, const char *name);
 
 /******************************/
 /* Load special vars:         */
@@ -117,8 +118,19 @@ Instruction *NegItUp(Value *v,Instruction *i);
 Instruction *CheckEquality_Ivar_len( Value *v1,Value *v2,Instruction *i);
 Instruction *CheckEquality_Ivar_zero(Value *v1,Value *v2,Instruction *i);
 
-void Update_Ghost_IVar(Function &f,int inc_I);
-void Update_Ghost_SVar(Function &f,int inc_S);
+/*************************/
+/* Initialize_Ghost_IVar */
+/* Initialize_Ghost_SVar */
+/*************************/
+void Initialize_Ghost_IVar(int init_I,Instruction *i);
+void Initialize_Ghost_SVar(int init_S,Instruction *i);
+
+/*********************/
+/* Update_Ghost_IVar */
+/* Update_Ghost_IVar */
+/*********************/
+void Update_Ghost_IVar(Loop *loop,int inc_I);
+void Update_Ghost_SVar(Loop *loop,int inc_S);
 
 void Instrument_Comparison_Non_Constants(Value *v1, Value *v2, Instruction *i);
 

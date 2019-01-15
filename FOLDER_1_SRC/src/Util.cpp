@@ -154,6 +154,21 @@ Value *cast_to_i32(Value *v,Instruction *i)
 	return ci;
 }
 
+Instruction *GepThemUp(Value *v,int offset,Instruction *i)
+{
+	Value* indexList[1] = { ConstantInt::get(i32_type,offset) };
+	auto oren  = cast<PointerType>(Load_ghost_SVar(i)->getType()->getScalarType())->getElementType();
+	auto moish = cast<PointerType>(ghost_SVar        ->getType()->getScalarType())->getElementType();
+	auto gepi = GetElementPtrInst::Create(
+		i8_type,
+		Load_ghost_SVar(i),
+		ArrayRef<Value*>(indexList,1),
+		"gepThemUp",
+		i);
+	//gepi->insertBefore(i);
+	return gepi;
+}
+
 /*************************/
 /* The BINOP operations: */
 /*                       */
@@ -289,12 +304,63 @@ Instruction *CheckEquality_Ivar_zero(Value *v1,Value *v2,Instruction *i)
 	ci2->insertBefore(i);
 	return AndThemUp(ci1,ci2,i);		
 }
-void Update_Ghost_IVar(Function &f, int inc_I)
+
+void Initialize_Ghost_IVar(int init_I,Instruction *i)
 {
+	if (init_I==0){StoreTo_ghost_IVar(ConstantInt::get(i32_type,0),i);}
+	if (init_I==1){StoreTo_ghost_IVar(Load_global_StrlenVar(i),    i);}
 }
 
-void Update_Ghost_SVar(Function &f, int inc_S)
+void Initialize_Ghost_SVar(int init_S,Instruction *i)
 {
+	if (init_S==0){StoreTo_ghost_SVar(LoadIt(ghost_SVar_init_value,i,"ghost_SVar_init_value_loaded"),i);}
+	if (init_S==1){StoreTo_ghost_SVar(LoadIt(ghost_SVar_init_value,i,"ghost_SVar_init_value_loaded"),i);}
+}
+
+void Update_Ghost_IVar(Loop *loop, int inc_I)
+{
+	/**************************************************/
+	/* [1] Take the very last basic block of the loop */
+	/**************************************************/
+	auto BB = loop->block_end()-1;
+
+	/********************************************/
+	/* [2] Take the very last instruction of BB */
+	/********************************************/
+	Instruction *i = (*BB)->getTerminator();
+	
+	/***************************************/
+	/* [3] ghost_IVar = ghost_IVar + inc_I */
+	/***************************************/
+	StoreTo_ghost_IVar(
+		AddThemUp(
+			Load_ghost_IVar(i),
+			ConstantInt::get(i32_type,inc_I),
+			i),
+		i);
+}
+
+void Update_Ghost_SVar(Loop *loop, int inc_S)
+{
+	/**************************************************/
+	/* [1] Take the very last basic block of the loop */
+	/**************************************************/
+	auto BB = loop->block_end()-1;
+
+	/********************************************/
+	/* [2] Take the very last instruction of BB */
+	/********************************************/
+	Instruction *i = (*BB)->getTerminator();
+
+	/***************************************/
+	/* [3] ghost_SVar = ghost_SVar + inc_S */
+	/***************************************/
+	StoreTo_ghost_SVar(
+		GepThemUp(
+			Load_ghost_SVar(i),
+			inc_S,
+			i),
+		i);
 }
 
 void Instrument_Comparison_Non_Constants(Value *v1, Value *v2, Instruction *i)

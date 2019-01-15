@@ -220,22 +220,22 @@ void GO()
 void Extract_The_Single_Loop_Of_The_String_Func(Function &f,LoopInfo &li)
 {
 	/*************************************/
-	/* [3] Iterate over all basic blocks */
+	/* [1] Iterate over all basic blocks */
 	/*************************************/
 	for (auto BB = f.begin(); BB != f.end(); BB++)
 	{
 		/*************************************/
-		/* [4] Iterate over all instructions */
+		/* [2] Iterate over all instructions */
 		/*************************************/
 		for (auto inst = BB->begin(); inst != BB->end(); inst++)
 		{
 			/*******************************/
-			/* [5] Extract the loop itself */
+			/* [3] Extract the loop itself */
 			/*******************************/
 			loop = li.getLoopFor(&*BB);
 
 			/*********************/
-			/* [6] Is it a loop? */
+			/* [4] Is it a loop? */
 			/*********************/
 			if (loop)
 			{
@@ -320,24 +320,20 @@ void Initialize_Ghost_Vars(Function &f, int init_I, int init_S)
 	/********************************************/
 	Instruction *i = (&(*BB))->getTerminator();
 
-	/**************************************/
-	/* [3] Initialize ghost_IVar is easy: */
-	/*     either 0 or myStrlen ...       */
-	/**************************************/
-	if (init_I==0){StoreTo_ghost_IVar(ConstantInt::get(i32_type,0),i);}
-	if (init_I==1){StoreTo_ghost_IVar(Load_global_StrlenVar(i),    i);}
+	/*****************************/
+	/* [3] Initialize ghost_IVar */
+	/*****************************/
+	Initialize_Ghost_IVar(init_I,i);
 
 	/***********************************/
 	/* [4] Find *THE* svar of the loop */
 	/***********************************/
 	Extract_The_Single_Svar_Of_The_Loop(loop);
 
-	/*****************************************************/
-	/* [5] Initialize ghost_SVar with either svar itself */
-	/*     or, alternatively, svar+myStrlen              */
-	/*****************************************************/
-	if (init_S==0){StoreTo_ghost_SVar(LoadIt(ghost_SVar_init_value,i,"ghost_SVar_init_value_loaded"),i);}
-	if (init_S==1){StoreTo_ghost_SVar(LoadIt(ghost_SVar_init_value,i,"ghost_SVar_init_value_loaded"),i);}
+	/*****************************/
+	/* [5] Initialize ghost_SVar */
+	/*****************************/
+	Initialize_Ghost_SVar(init_S,i);
 }
 
 /**************************************/
@@ -667,8 +663,8 @@ void HandleStringFunc(Function &f)
 	/***********************************************/
 	/* [7] Instrument Pointer & Integer increments */
 	/***********************************************/
-	Update_Ghost_IVar(f,inc_I);
-	Update_Ghost_SVar(f,inc_S);
+	Update_Ghost_IVar(loop,inc_I);
+	Update_Ghost_SVar(loop,inc_S);
 }
 
 /*****************/
