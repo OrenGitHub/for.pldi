@@ -157,15 +157,12 @@ Value *cast_to_i32(Value *v,Instruction *i)
 Instruction *GepThemUp(Value *v,int offset,Instruction *i)
 {
 	Value* indexList[1] = { ConstantInt::get(i32_type,offset) };
-	auto oren  = cast<PointerType>(Load_ghost_SVar(i)->getType()->getScalarType())->getElementType();
-	auto moish = cast<PointerType>(ghost_SVar        ->getType()->getScalarType())->getElementType();
 	auto gepi = GetElementPtrInst::Create(
 		i8_type,
-		Load_ghost_SVar(i),
+		v,
 		ArrayRef<Value*>(indexList,1),
 		"gepThemUp",
 		i);
-	//gepi->insertBefore(i);
 	return gepi;
 }
 
@@ -385,12 +382,12 @@ Value *Value_Is_Different_From_Ivar(Value *v,Instruction *i)
 {
 	auto ne = CmpInst::ICMP_NE;
 	auto op = Instruction::OtherOps::ICmp;
-	auto ghost_IVar = Load_ghost_SVar(i);
+	auto load_ghost_IVar = Load_ghost_IVar(i);
 	auto ci = CmpInst::Create(
 		op,
 		ne,
 		v,
-		ghost_IVar,
+		load_ghost_IVar,
 		"value_is_ne_to_ghost_IVar");
 	ci->insertBefore(i);
 	return ci;
