@@ -40,7 +40,7 @@ Value *global_StrlenVar = nullptr;
 /***************************/
 /* STATIC GLOBAL VARIABLES */
 /***************************/
-static int errorCode = 0;
+static int errorCode = 1;
 
 /*************************/
 /* Get Boolean (i1) Type */
@@ -144,12 +144,12 @@ void StoreTo_global_StrlenVar(Value *v,Instruction *i){	StoreIt(v,global_StrlenV
 
 Value *cast_to_i32(Value *v,Instruction *i)
 {
-	auto ext = Instruction::CastOps::ZExt;
+	auto ext = Instruction::CastOps::SExt;
 	auto ci = CastInst::Create(
 		ext,
 		v,
 		i32_type,
-		"zero_extended");
+		"sign_extended");
 	ci->insertBefore(i);
 	return ci;
 }
@@ -245,6 +245,12 @@ void Turn_Status_Flag_On_Conditionally(Value *cond,Instruction *i)
 	/* Actual store ... */
 	/********************/
 	StoreTo_global_StatusVar(addition,i);
+	
+	/*****************************************************/
+	/* Modify the error code to be able to differentiate */
+	/* the reason for failure.                           */
+	/*****************************************************/
+	errorCode *= 2;
 }
 /***************************************************/
 /* Check Equality and make sure it satisfies:      */
