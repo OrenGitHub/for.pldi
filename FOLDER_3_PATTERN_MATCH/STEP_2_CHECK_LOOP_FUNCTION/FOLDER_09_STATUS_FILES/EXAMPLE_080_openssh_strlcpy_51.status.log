@@ -1,0 +1,3 @@
+char *loopFunction(char *s)
+{
+    while (*s++

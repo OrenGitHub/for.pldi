@@ -1,0 +1,5 @@
+char *loopFunction(char *name)
+{
+
+    int len;
+    for (len = strlen(

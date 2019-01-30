@@ -1,0 +1,4 @@
+char *loopFunction(char *url)
+{
+    int i;
+    int url_len =

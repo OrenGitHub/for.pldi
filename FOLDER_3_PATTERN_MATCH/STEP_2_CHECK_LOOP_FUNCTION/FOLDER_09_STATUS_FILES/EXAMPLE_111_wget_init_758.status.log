@@ -1,0 +1,4 @@
+char *loopFunction(char *val)
+{
+
+    for (++

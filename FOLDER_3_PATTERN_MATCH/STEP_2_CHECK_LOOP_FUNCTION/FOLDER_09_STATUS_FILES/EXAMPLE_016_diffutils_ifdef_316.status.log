@@ -1,0 +1,4 @@
+char *loopFunction(char *f)
+{
+    char c;
+    while ((c

@@ -1,0 +1,6 @@
+char *loopFunction(char *remote)
+{
+    char * ptr;
+    int len;
+
+    for (len = INT(0) 

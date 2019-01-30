@@ -1,0 +1,1 @@
+char *loopFunction(char *input){}

@@ -1,0 +1,5 @@
+char *loopFunction(char *t)
+{
+
+    char *o;
+    int tlen =

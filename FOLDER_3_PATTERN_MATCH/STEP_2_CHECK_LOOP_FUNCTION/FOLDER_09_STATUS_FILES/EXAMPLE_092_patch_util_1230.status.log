@@ -1,0 +1,5 @@
+char *loopFunction(char *filename)
+{
+
+    char *f;
+    for (f = filename +
