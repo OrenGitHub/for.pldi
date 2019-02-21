@@ -223,7 +223,7 @@ ${STR_LOOPS_STATUS_DIR}/%.status: ${KLEE_OUTPUT_DIR}/%
 		fi;                                        \
 		status=$$((status || $$z));                \
 	done;                                          \
-	echo "[ 7 ] Grep-ing for assertions: $$f";     \
+	echo "[ 7 ] Grep-ing for assertions  : $$f";   \
 	echo $$status > $@
 
 #######################################################################
