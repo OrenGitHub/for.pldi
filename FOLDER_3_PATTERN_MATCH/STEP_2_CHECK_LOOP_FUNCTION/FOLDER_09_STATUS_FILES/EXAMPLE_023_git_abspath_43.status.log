@@ -1,6 +1,0 @@
-char *loopFunction(char *end)
-{
-    for (; *end && >> ERROR(((*end) == '/') || ((*end) == '\\')); end++)
-        ;
-    return end;
-}

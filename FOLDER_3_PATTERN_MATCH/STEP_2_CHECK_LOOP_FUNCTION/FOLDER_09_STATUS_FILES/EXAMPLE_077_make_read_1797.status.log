@@ -1,3 +1,0 @@
-char *loopFunction(char *line)
-{
-    char termin =

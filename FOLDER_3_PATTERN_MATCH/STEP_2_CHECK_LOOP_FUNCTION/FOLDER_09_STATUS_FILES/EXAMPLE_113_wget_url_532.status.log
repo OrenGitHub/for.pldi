@@ -1,5 +1,0 @@
-char *loopFunction(char *url)
-{
-
-    char *p;
-    for (p = url; *p && *p != >> ERROR>> ERROR>> ERROR &&

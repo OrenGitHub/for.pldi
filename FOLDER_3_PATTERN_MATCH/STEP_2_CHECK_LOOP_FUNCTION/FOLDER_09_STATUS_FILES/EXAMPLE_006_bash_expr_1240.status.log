@@ -1,5 +1,0 @@
-char *loopFunction(char *cp)
-{
-    char c;
-
-    while ((c

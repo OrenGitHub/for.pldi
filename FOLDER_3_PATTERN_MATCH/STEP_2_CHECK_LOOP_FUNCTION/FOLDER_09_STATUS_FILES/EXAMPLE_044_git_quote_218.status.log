@@ -1,3 +1,0 @@
-char *loopFunction(char *s) {
-  int len;
-  int maxlen =

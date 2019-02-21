@@ -1,3 +1,0 @@
-char *loopFunction(char *buf)
-{
-    int len =

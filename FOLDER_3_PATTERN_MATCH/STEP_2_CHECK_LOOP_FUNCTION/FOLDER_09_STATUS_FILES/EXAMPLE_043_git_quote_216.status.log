@@ -1,4 +1,0 @@
-char *loopFunction(char *s) {
-  int len;
-
-  for (len = INT(0) 

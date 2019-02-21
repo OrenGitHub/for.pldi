@@ -1,3 +1,0 @@
-char *loopFunction(char *value)
-{
-  int len =

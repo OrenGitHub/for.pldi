@@ -1,2 +1,0 @@
-char *loopFunction(char *p) {
-  int len =

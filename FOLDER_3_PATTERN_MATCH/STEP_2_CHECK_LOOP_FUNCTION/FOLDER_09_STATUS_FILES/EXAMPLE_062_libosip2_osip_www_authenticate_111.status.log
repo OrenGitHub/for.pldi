@@ -1,3 +1,0 @@
-char *loopFunction(char *tmp)
-{
-    for (; *tmp == '\n' || *tmp == >> ERROR>> ERRORr

@@ -1,3 +1,0 @@
-char *loopFunction(char *path)
-{
-    int len =

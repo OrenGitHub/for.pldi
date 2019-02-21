@@ -1,2 +1,0 @@
-char *loopFunction(char *submodule) {
-  int len =

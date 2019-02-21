@@ -1,3 +1,0 @@
-char *loopFunction(char *p)
-{
-    p +

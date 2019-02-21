@@ -1,4 +1,0 @@
-char *loopFunction(char *q)
-{
-
-    for (; *q++

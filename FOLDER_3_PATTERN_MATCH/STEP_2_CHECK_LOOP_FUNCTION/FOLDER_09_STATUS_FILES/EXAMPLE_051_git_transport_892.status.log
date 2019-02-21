@@ -1,2 +1,0 @@
-char *loopFunction(char *url) {
-  char * p =
