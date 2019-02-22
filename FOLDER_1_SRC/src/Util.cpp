@@ -5,6 +5,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/Support/raw_ostream.h"
 
 /*************************/
 /* PROJECT INCLUDE FILES */
@@ -368,6 +369,20 @@ void Update_Ghost_SVar(Loop *loop, int inc_S)
 
 void Instrument_Comparison_Non_Constants(Value *v1, Value *v2, Instruction *i)
 {
+	/*****************************************************/
+	/* [1] If the type of either v1 or v2 is NOT i32     */
+	/*     it must mean that it is an illegal comparison */
+	/*****************************************************/
+	if ((v1->getType() != i32_type) ||
+		(v2->getType() != i32_type))
+	{
+		Turn_Status_Flag_On(i);
+		return;
+	}
+
+	/*****************************************************/
+	/* [2] Otherwise, the types of both v1 and v2 is i32 */
+	/*****************************************************/
 	Turn_Status_Flag_On_Conditionally(
 		NegItUp(
 			OrThemUp(
