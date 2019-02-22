@@ -332,7 +332,9 @@ you can inspect with the methods presented above.
 - It does so by checking the loop's increments, comparisons, read values, phi values etc.
 - Every C loop is compiled with `clang-3.8.0` to produce a (non optimized) bitcode.
 - The resulting bitcode is instrumented and then fed to KLEE's symbolic execution engine.
-  The instrumentation contains code the turns a status flag on whenever a loop is *not* memoryless.
-  KLEE then checks this (symbolic) status flag, if there exists an execution path which turns it on.
-  If KLEE finds such an execution path, it will fire an assert.
+  The instrumentation contains code that conditionally turns a status flag on whenever
+  certain properties hold. For example, when comparing two integers, the only allowed
+  values are the loop index, zero, and the string length. KLEE then inspects
+  all execution paths symbolically and checks if there exists a path on which the flag is turned on.
+  If KLEE finds such a path, it will fire an assert.
 
