@@ -352,9 +352,12 @@ to build all of the above (please allow up to 1 hour on a modern pc).
 
 - The best way to view the instrumentation is to use a (graphic) diff tool.
 - Use the human readable versions of the original bitcode versus the instrumented one.
-- For example, the following image illustrates the instrumentation
-  of a simple comparison command between a read value and the constant 0.
-![This Image](diff.png)
+- The image below shows the instrumentation (right, green)
+  of the command `%tobool = icmp ne i32 %conv, 0`.
+  ![Diff](diff.png)
+
+## Collecting the results
+
 The results will be collected to a file called `results.csv` which will
 be created in the uppermost level.
 
