@@ -345,7 +345,7 @@ If you have
 [clang-3.8.0](http://releases.llvm.org/download.html) and
 [Z3](https://github.com/Z3Prover/z3) installed on your machine,
 then simply run `make` from the uppermost level.
-Alternatively, you can run `make build_everything_from_scratch'
+Alternatively, you can run `make build_everything_from_scratch`
 to build all of the above (please allow up to 1 hour on a modern pc).
 
 ## Examining the results
