@@ -328,16 +328,7 @@ you can inspect with the methods presented above.
 
 # Verification of Memoryless loops
 
-This step takes the 115 loops and classifies those which are memoryless.
-It does so by checking the loop's increments, comparisons, read values etc.
-Every C loop is compiled in lines `133 - 140` of the makefile:
-```
-####################################################
-# [3] create bitcode from each example source file #
-####################################################
-${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc: \
-${STR_LOOPS_C_EXAMPLES_DIR}/%.c    \
-${STR_LOOPS_DIR}/main
-	@echo "[ 1 ] Generating bitcode   from: $<"
-	@clang ${CLANG_FLAGS} $< -o $@
-```
+- This step takes the 115 loops and classifies those which are memoryless.
+- It does so by checking the loop's increments, comparisons, read values, phi values etc.
+- Every C loop is compiled with `clang-3.8.0` and no optimizations.
+
