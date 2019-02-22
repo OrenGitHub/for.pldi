@@ -345,4 +345,14 @@ If you have
 [clang-3.8.0](http://releases.llvm.org/download.html) and
 [Z3](https://github.com/Z3Prover/z3) installed on your machine,
 then simply run `make` from the uppermost level.
-from the command line.
+Alternatively, you can run `make build_everything_from_scratch'
+to build all of the above (please allow up to 1 hour on a modern pc).
+
+## Examining the results
+
+The best way to view the instrumentation is to use a (graphic) diff tool with the
+human readable versions of the original bitcode versus the instrumented one.
+For example, ![This Image](diff.png) shows bla.
+The results will be collected to a file called `results.csv` which will
+be created in the uppermost level.
+
