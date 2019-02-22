@@ -340,9 +340,9 @@ you can inspect with the methods presented above.
 
 ## Running the verification step
 
-If you have KLEE, clang-3.8.0 and Z3 installed on your machine,
-then the easiest way to run the verification step is as simple as typing
-```
-make
-```
+If you have
+[KLEE](https://klee.github.io/),
+[clang-3.8.0](http://releases.llvm.org/download.html) and
+[Z3](https://github.com/Z3Prover/z3) installed on your machine,
+then simply run `make` from the uppermost level.
 from the command line.
