@@ -336,5 +336,13 @@ you can inspect with the methods presented above.
   certain properties hold. KLEE then (symbolically) inspects all execution paths looking
   for a path on which the flag is turned on.
   If KLEE finds such a path, it fires an assert.
-  Otherwise, the loop is qualified as mempryless.
+  Otherwise, the loop is qualified as memoryless.
 
+## Running the verification step
+
+If you have KLEE, clang-3.8.0 and Z3 installed on your machine,
+then the easiest way to run the verification step is as simple as typing
+```
+make
+```
+from the command line.
