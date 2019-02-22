@@ -350,8 +350,8 @@ to build all of the above (please allow up to 1 hour on a modern pc).
 
 ## Examining the results
 
+- Consider the simple loop of example 2 ![Src](src.png)
 - The best way to view the instrumentation is to use a (graphic) diff tool.
-- For example, consider the simple loop of example 2 ![Src](src.png)
 - Use the human readable versions of the original bitcode (left) versus the instrumented one (right).
 - Instrumentation will add commands that will conditionally turn a status flag (`@myStatus`) on.
 - The commands on the right (green) are add before `%tobool = icmp ne i32 %conv, 0` to instrument it.
