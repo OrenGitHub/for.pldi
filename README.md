@@ -326,4 +326,18 @@ we show in the paper with the configuration we used.
 It will create copies of the above folders and run the experiments there, which
 you can inspect with the methods presented above.
 
+# Verification of Memoryless loops
 
+This step takes the 115 loops and classifies those which are memoryless.
+It does so by checking the loop's increments, comparisons, read values etc.
+Every C loop is compiled in lines `133 - 140` of the makefile:
+```
+####################################################
+# [3] create bitcode from each example source file #
+####################################################
+${STR_LOOPS_BC_EXAMPLES_DIR}/%.bc: \
+${STR_LOOPS_C_EXAMPLES_DIR}/%.c    \
+${STR_LOOPS_DIR}/main
+	@echo "[ 1 ] Generating bitcode   from: $<"
+	@clang ${CLANG_FLAGS} $< -o $@
+```
