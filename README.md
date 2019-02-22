@@ -354,10 +354,9 @@ to build all of the above (please allow up to 1 hour on a modern pc).
 - The best way to view the instrumentation is to use a (graphic) diff tool.
 - Use the human readable versions of the original bitcode (left) versus the instrumented one (right).
   ![Diff](diff.png)
-- The commands on the right (green) are added before `%tobool = icmp ne i32 %conv, 0` to instrument it.
-- Instrumentation will add commands that conditionally turns a status flag (`@myStatus`) on.
+- The green commands (right) are added before `%tobool = icmp ne i32 %conv, 0` to instrument it.
 - `%conv` is enforced to contain the current read value `%ghost_SVar_Content`.
-- If it doesn't, then the status variable will be turned on.
+- If it doesn't, instrumentation turns a status flag (`@myStatus`) on.
 
 ## Collecting the results
 
