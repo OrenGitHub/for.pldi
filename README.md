@@ -333,7 +333,8 @@ you can inspect with the methods presented above.
 - Every C loop is compiled with `clang-3.8.0` to produce a (non optimized) bitcode.
 - The resulting bitcode is instrumented and then fed to KLEE's symbolic execution engine.
   The instrumentation contains code that conditionally turns a status flag on whenever
-  certain properties hold. KLEE then inspects all execution paths symbolically if there
-  exists a path on which the flag is turned on.
+  certain properties hold. KLEE then (symbolically) inspects all execution paths looking
+  for a path on which the flag is turned on.
   If KLEE finds such a path, it fires an assert.
+  Otherwise, the loop is qualified as mempryless.
 
